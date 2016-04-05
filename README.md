@@ -43,5 +43,9 @@ For Client (RPis):
 
 ### Dissemination Code
 
--creating a standard `.ihex` using the [Contiki-OS](https://github.com/contiki-os/contiki) for *Zolerta Z1 nodes*
+- creating a standard `.ihex` using the [Contiki-OS](https://github.com/contiki-os/contiki) for *Zolerta Z1 nodes*
+
+### Improvements
+
+- add `VERSION` argument to be used when uploading new `.ihex` to network for version-control.
 
