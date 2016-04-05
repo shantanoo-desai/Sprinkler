@@ -9,6 +9,7 @@ IMIN  = 0.1
 IMAX = 8
 
 def txconsistencyCheck(version, datalen, trickTimer):
+	"""Consistency Check according to RFC 6206 'Trickle Algorithm' """
 	global MSGVERSION
 
 	if(int(version) == MSGVERSION):
@@ -68,7 +69,7 @@ def server(PATH, FILENAME):
 	servSocket = twinSocket()
 
 	servSocket.bindTheSock()
-
+	# Pack the data to be sent with our *pseudo-headers* from message-constants.py
 	dataToSend = pack('!IL', MSGVERSION, DATALEN) + str(myHEXCODE.read())
 
 	print "Setting Up Trickle Timer..\n"
@@ -77,21 +78,26 @@ def server(PATH, FILENAME):
 	tt.start()
 
 	while True:
+		# keep listening on the port for messages from receivers
 		dataGot, fromWhom = servSocket.recvFromSock(65535)
 		print "----------------------------\n"
 		print "data received from: ", fromWhom
-
+		# if no data received close the socket
 		if not dataGot:
 			break
-				
+		# unpack the data from the received message		
 		theirVersion, theirDataLen = unpack_from('!IH', dataGot)
+		# if there is additional data from clients 
+		# Most cases: NO DATA from clients
 		additionalData = dataGot[8:0]
-		# CHECK DATA....
+		# CHECK DATA.... Consistency Checks w/ boolean o/p
 		constFlag = txconsistencyCheck(theirVersion, theirDataLen, tt)
 
 		if constFlag:
+			# if data is consistent do not write any data to the server...
 			print "Consistent.. Not writing data.."
 			tt.cancel()
+			# send back a packet with no further data length as a kind of an ACK
 			DATALEN = 0 # Kind of ACK
 			reply = pack('!IL', MSGVERSION, DATALEN)
 			tt = trickleTimer(servSocket.sendToSock, {'message': dataToSend, 'host': MCASTGRP, 'port': MCASTPORT}, \
@@ -99,6 +105,8 @@ def server(PATH, FILENAME):
 			tt.start()
 		
 		elif additionalData:
+			# if there is additional data write it on the server
+			# For future use: -- Idea of piggybacking..
 			print "Writing data to a file....\n"
 			os.chdir(PATH)
 			newFile = open(newData.txt, 'w')

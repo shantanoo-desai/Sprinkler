@@ -37,7 +37,7 @@ For Client (RPis):
 ## Structure
 
 	-- twinSocket.py : socket class to be used 
-	-- trickle.py : Implementation of Trickle Timer taken from [simpleRPL](https://github.com/tcheneau/simpleRPL)
+	-- trickle.py : Implementation of Trickle Timer 
 	-- message_constants.py : *pseudo-header* parameters for Version control
 	-- Sender/Receiver.py: implementation of server/client respectively
 
@@ -49,3 +49,6 @@ For Client (RPis):
 
 - add `VERSION` argument to be used when uploading new `.ihex` to network for version-control.
 
+### Trickle Implementation 
+
+Taken from [simpleRPL](https://github.com/tcheneau/simpleRPL)

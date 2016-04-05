@@ -5,6 +5,8 @@ from trickle import trickleTimer
 from struct import pack, unpack, unpack_from
 from message_constants import MSGVERSION, DATALEN
 
+# Trickle Timer Parameters -- These values are close to ~ 25 seconds
+# change for robust usage
 IMIN  = 0.1
 IMAX = 8
 
@@ -41,43 +43,58 @@ def rxconsistencyCheck(version, datalen, trickTimer):
 
 def receiver():
 	print "Starting Receiver Mode\n"
-	PIPATH = '/home/testbed/'
+	# this the path on Pi where the "INOTIFY-TOOLS" has been set
+	PIPATH = '/home/pi/contiki-2.7/tools/z1/'
+	# this is the filename on which the "INOTIFY-TOOLS" will react.
+	PIFILENAME = 'main.ihex'
 
 	# --------------- Socket for Receiving
 	recvSocket = twinSocket()
 	recvSocket.bindTheSock()
-	myDATALEN = 0 # I wont send any day in return..
+	myDATALEN = 0 # I wont send any day in return.. Kind of an ACK
+	# pack data to be sent as a REPLY..
 	reply = pack('!IH', MSGVERSION, DATALEN)
 
+	print "Starting trickle Timer....\n"
 	rxtt = trickleTimer(recvSocket.sendToSock, {'message': reply, 'host': MCASTGRP, 'port': MCASTPORT}, \
 		IMIN, IMAX)
 	rxtt.start()
 
 	while True:
+		# Data received from the server and/or other clients
 		dataRecv, fromSource = recvSocket.recvFromSock(65535)
 
 		if not dataRecv:
+			# close socket..
 			break
 
 		print "-----------------------------\n"
 		print "data received from: ", fromSource
+
+		# Unpack the received data
 		theirVersion, theirDataLen = unpack_from('!IL', dataRecv)
+		# if data from server, save the hexcode payload
 		hexFILE = dataRecv[8:]
+
 		# Check DATA...
 		constFlag = rxconsistencyCheck(theirVersion, theirDataLen, rxtt)
 
 		if constFlag:
+			# if consistent everytime do not keep writing the same hexfile
 			print "Consistent not Writing hexfile"
+		# if not consistent then write the new hexfile
 		elif hexFILE:
 			print "Writing hexfile..."
 			os.chdir(PIPATH)
-			newHexFile = open('newHexFile.txt', 'w')
+			newHexFile = open(PIFILENAME, 'w')
 			newHexFile.write(hexFILE)
 			newHexFile.close()
 			
 			myDATALEN = 0 # As a way to create an ACK and I have no data
-			print MSGVERSION
+			#print MSGVERSION  		<--------------- DEBUG CHECK FOR VERSION
+			
 		rxtt.cancel()
+		# create a new reply as an ACK with no DATALEN
 		reply = pack('!IH', MSGVERSION, myDATALEN)
 		rxtt = trickleTimer(recvSocket.sendToSock, {'message': reply, 'host': MCASTGRP, 'port': MCASTPORT}, \
 		IMIN, IMAX)
