@@ -41,7 +41,4 @@ For Client (RPis):
 	-- message_constants.py : *pseudo-header* parameters for Version control
 	-- Sender/Receiver.py: implementation of server/client respectively
 
-### Dissemination Code
-
--creating a standard `.ihex` using the [Contiki-OS](https://github.com/contiki-os/contiki) for *Zolerta Z1 nodes*
 
