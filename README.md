@@ -53,6 +53,18 @@ For Client (RPis):
 
 - decide on a Metric for routing and forwarding data 
 
+    * directed diffusion routing (maybe)
+
+### Problems
+
+- when `.ihex` file is > ~64kB it needs to be split into chunks to be sent over __UDP__
+
+    * Use `split` tool on Ubuntu
+
+- dispensing this chunks with reliability over network
+
+	* use __Fountain Coding__ (Network Coding)
+
 ### Trickle Implementation 
 
 Taken from [simpleRPL](https://github.com/tcheneau/simpleRPL)
