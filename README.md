@@ -23,9 +23,9 @@ For general Idea:
 
 For Server (Laptop):
 	
-	python main.py -s /Path/to/File fileName.ihex 
+	python main.py -s /Path/to/File fileName.ihex 0x0002 
 		or 
-	python main.py --server /Path/to/File fileName.ihex
+	python main.py --server /Path/to/File fileName.ihex 0x0002
 
 For Client (RPis):
 
@@ -47,7 +47,11 @@ For Client (RPis):
 
 ### Improvements
 
-- add `VERSION` argument to be used when uploading new `.ihex` to network for version-control.
+- ~~add `VERSION` argument to be used when uploading new `.ihex` to network for version-control~~
+
+- create a `SQL` database for all the __Link-Local IPv6 Addresses__ at the Receiver and Server
+
+- decide on a Metric for routing and forwarding data 
 
 ### Trickle Implementation 
 

@@ -38,9 +38,12 @@ def txconsistencyCheck(version, datalen, trickTimer):
 		print "there is some data.."
 
 
-def server(PATH, FILENAME):
+def server(PATH, FILENAME, versionNumber):
 
 	print "Starting Server Mode\n"
+	# converting the argument value which is in hexadecimal to integer
+	MSGVERSION = int(versionNumber, 16)
+	print "Version for code: ", MSGVERSION
 
 	#------------PATH CHECK ------------------
 	pathFLAG = os.path.exists(PATH)
