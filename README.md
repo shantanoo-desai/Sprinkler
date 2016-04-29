@@ -15,13 +15,13 @@
 * Use `python3-pip` on Ubuntu-14.04 LTS for installing the __PyPi__ module of *LT-Codes* by Anson Rosenthal
 
     sudo apt-get install python3-pip
-	pip3 install lt-code
+    pip3 install lt-code
 
 * Since no __Python-3.4__ available for Raspberry Pi-2 (still in Beta)
 
-	git clone https://github.com/anrosent/LT-Codes.git
-	cd LT-Codes/
-	python3 setup.py install
+    git clone https://github.com/anrosent/LT-Codes.git
+    cd LT-Codes/
+    python3 setup.py install
 
 #### Files
 
