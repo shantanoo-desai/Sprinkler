@@ -51,7 +51,7 @@ def server(PATH, FILENAME):
 		for each in encode.encoder(FILENAME, stdBlockSize):
 			try:
 				servSocket.sendToSock(each, MCASTGRP)
-				time.sleep(10)
+				#time.sleep(10)
 			except socket.error as e:
 				print("Error in Socket Sending procedure..")
 				sys.exit(1)

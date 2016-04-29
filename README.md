@@ -12,10 +12,16 @@
 
 #### Requirements
 
-Use `python3-pip` for installing the __PyPi__ module of *LT-Codes* by Anson Rosenthal
+* Use `python3-pip` on Ubuntu-14.04 LTS for installing the __PyPi__ module of *LT-Codes* by Anson Rosenthal
 
     sudo apt-get install python3-pip
 	pip3 install lt-code
+
+* Since no __Python-3.4__ available for Raspberry Pi-2 (still in Beta)
+
+	git clone https://github.com/anrosent/LT-Codes.git
+	cd LT-Codes/
+	python3 setup.py install
 
 #### Files
 
@@ -27,4 +33,6 @@ Use `python3-pip` for installing the __PyPi__ module of *LT-Codes* by Anson Rose
 
 3. __twinSocket.py__ : Socket Wrapper for UDP Datagrams
 
+#### Problems
 
+Can't figure out how to decode data at Pi. Problem arises at `stream.read(12)` since the __bytes__ cannot be *read*
