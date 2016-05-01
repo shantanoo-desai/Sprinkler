@@ -37,25 +37,24 @@ def server(PATH, FILENAME):
 	
 	with open(FILENAME, 'rb') as f:
 
-		sizeFile, Blocks = encode.get_blocks(f, stdBlockSize)
+		sizeFile, Blocks = encode._split_file(f, stdBlockSize)
 		print("size of file is (Bytes): ", sizeFile)
 		print ("length of Blocks: ", len(Blocks))
 
 	# -------------- Socket for Sending 
-	servSocket = twinSocket()
-
-	servSocket.bindTheSock()
-	
-	while True:
-		print("Starting Fountain \n")
-		for each in encode.encoder(FILENAME, stdBlockSize):
-			try:
-				servSocket.sendToSock(each, MCASTGRP)
-				#time.sleep(10)
-			except socket.error as e:
-				print("Error in Socket Sending procedure..")
-				sys.exit(1)
+	with open(FILENAME, 'rb') as f:
+	    servSocket = twinSocket()
+	    
+	    while True:
+		    print("Starting Fountain \n")
+		    for each in encode.encoder(f, stdBlockSize):
+			    try:
+				    servSocket.sendToSock(each, MCASTGRP)
+				    #time.sleep(10)
+			    except socket.error as e:
+				    print("Error in Socket Sending procedure..")
+				    sys.exit(1)
 	servSocket.closeSock()
 
 if __name__ == '__main__':
-	server(PATH='/home/testbed/hexfiles', FILENAME='tmpimage.ihex')
+	server(PATH='hexfiles', FILENAME='tmpimage.ihex')
