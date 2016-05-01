@@ -2,7 +2,8 @@
 
 Development based on:
 
-> Idrees Zaman, Jens Dede, and Anna Förster. 2016. Demo: TWIN Node, A Flexible Wireless Sensor Network Testbed. In Proceedings of the 2016 International Conference on Embedded Wireless Systems and Networks (EWSN '16). Junction Publishing, , USA, 237-238. 
+> Idrees Zaman, Jens Dede, and Anna Förster. 2016. Demo: TWIN Node, A Flexible Wireless Sensor Network Testbed. 
+> In Proceedings of the 2016 International Conference on Embedded Wireless Systems and Networks (EWSN '16). Junction Publishing, , USA, 237-238. 
 
 Paper available [here](http://dl.acm.org/citation.cfm?id=2893751)
 
