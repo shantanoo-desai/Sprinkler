@@ -1,5 +1,7 @@
 # trickleTWIN
-Implementation of the Trickle Algorithm for TWIN node
+Implementation of the Trickle Algorithm for TWIN node for __ComNets Universität Bremen__
+
+This is an active project and any/all files or the complete repository are/is subject to changes!
 
 Using *Multicast Addressing Scheme* `ff02::1` for disseminating code
 within an Ad-Hoc network consisting of the following:
