@@ -29,10 +29,24 @@
 
     * File to be sent: __intel Hex File__ (`.ihex`)
 
-2. __Receiver.py__ : Receiver (Raspberry Pi:2)
+2. __Receiver.py__ : Receiver (Raspberry Pi 2)
 
 3. __twinSocket.py__ : Socket Wrapper for UDP Datagrams
 
+
+#### Added Features (v2.0)
+
+* Controlled dissemination of __Fountain__ in order to not flood the shared network of WiFi
+
+* Added Feedback and Version Check for efficiency 
+
+
 #### Problems
 
-Can't figure out how to decode data at Pi. Problem arises at `stream.read(12)` since the __bytes__ cannot be *read*
+~~Can't figure out how to decode data at Pi. Problem arises at `stream.read(12)` since the __bytes__ cannot be *read*~~
+
+Found fix with __Pull Request__ from @anrosent
+
+#### Next Milestone
+
+> Integrate Trickle Algorithm
