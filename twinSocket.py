@@ -75,3 +75,7 @@ class twinSocket(object):
     def closeSock(self):
         print("CLOSING SOCKET..")
         self.sock.close()
+
+    def timeout(self, timeoutValue):
+        self.sock.settimeout(timeoutValue)
+        print("Timeout Set..")
