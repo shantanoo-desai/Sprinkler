@@ -18,22 +18,27 @@ def receiver():
 
     # Instantiate an LtDecoder 
     decoder = decode.LtDecoder()
-    try:
-        recvSocket.timeout(10)
-    except socket.timeout as toutError:
-        print('timeout:', toutError)
-
+    recvSocket.timeout(10)
     
-
+    dataRecv = ''
+    fromSource = ''
 
     while True:
         # Data received from the server and/or other clients
         print("Waiting for Data")        
 
-        dataRecv, fromSource = recvSocket.recvFromSock(65535)
+        try:
+            dataRecv, fromSource = recvSocket.recvFromSock(65535)
+            print("data received from: ", fromSource)
+        except (socket.error, OSError, UnboundLocalError):
+            try:
+                print("Extending time..")
+                recvSocket.timeout(2*10)
+            except (socket.error, OSError):
+                print("Closing socket")
+                recvSocket.closeSock()
 
-        print("-----------------------------\n")
-        print("data received from: ", fromSource)
+        
 
         # Kinda hacky, read a single block as a one-element sequence of blocks using the BytesIO file-like interface for bytes
         lt_block = next(decode.read_blocks(BytesIO(dataRecv)))
@@ -46,7 +51,6 @@ def receiver():
             # Extract the decoded file and print
             print(decoder.bytes_dump())
             exit(0)
-        
     
     recvSocket.closeSock()
 
