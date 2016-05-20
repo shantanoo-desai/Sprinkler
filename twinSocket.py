@@ -21,7 +21,7 @@ class twinSocket(object):
             # creating a socket
             sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
             # this is Optional --> multiuse of the Socket
-            #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             print("SOCKET CREATED....")
 
         except socket.error as e:

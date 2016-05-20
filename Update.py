@@ -18,7 +18,6 @@ import sys
 
 Blocksize = 1452
 
-
 def addFooter(encodedBlock):
     """ Add at the end of each encoded Block add a 4B footer to indicate Version """
 
@@ -72,36 +71,40 @@ def Fountain(PATH, FILENAME, VERSION):
 
                 dataToSend = addFooter(eachBlock)
                 try:
-                    # Send the packed data to the Multicast Group
-                    servSocket.sendToSock(dataToSend, MCASTGRP)
-                    # increase the counter
-                    packetCounter += 1
-
-                    # Check if K' packets are already sent
-                    if packetCounter not in range((1 + Gamma) * K):
-                        print("Packets Sent: ", packetCounter)
-
-                        # If so Close the Fountain..
-                        print("Closing Fountain")
-                        break
+                    for packetLimit in range((1+Gamma)*K):
+                        # increase the counter
+                        packetCounter += 1
+                        # Send the packed data to the Multicast Group
+                        servSocket.sendToSock(dataToSend, MCASTGRP)
+                    print("Packets Sent: " ,packetCounter)
+                    print("closing Fountain")
 
                 except socket.error as e:
                     print("Error in Socket.. closing it!")
                     servSocket.closeSock()
-            
+                
 
-            # Receiving ACK
-            dataACK, fromDestinations = servSocket.recvFromSock(65535)
-            if dataACK:
-                print("Acknowledgement received")
-            break
+                else:
+                    pass
+
+                finally:
+                    # Receiving ACK
+                    while True:
+                        dataACK, fromDestinations = servSocket.recvFromSock(65535)
+                        if not dataACK:
+                            break
+
+                        print("Acknowledgement received")
+                        print(fromDestinations)
+                        theirVERSION = unpack('!I', dataACK)[0]
+                        if VERSION == int(theirVERSION):
+                            print("Compliance!! ")
+                        else:
+                            print("problem in version!!")
         
     ############################################################################################
 
-    theirVERSION = unpack('!I', dataACK)[0]
-    if VERSION == int(theirVERSION):
-        print("Compliance!! ")
-        servSocket.closeSock()
+    
 
 
 if __name__ == "__main__":

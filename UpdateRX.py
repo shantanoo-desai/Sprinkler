@@ -36,48 +36,57 @@ def Bucket():
     # Create Socket and Bind it to Multicast Port
     recvSocket = twinSocket()
     recvSocket.bindTheSock()
+    recvSocket.timeout(150)
 
     # create the LT-Decoder 
     decoder = decode.LtDecoder()
 
     # create a packet Counter to check if we needed more than K droplets
     dropletCounter = 0
-    while True:
-        """ Keep the Bucket under the Fountain! """
-
-        droplets, FountainAddress = recvSocket.recvFromSock(65535)
-
-        if not droplets:
-            print("No Droplets Received. \n")
-            break
-        dropletCounter += 1
-
-        # strip the footer to check the Version and to feed
-        # the Decoder the right block
-        footer = droplets[-4:]
-        VERSION = unpack('!I', footer)[0]
         
-        
+    try:
+        while True:
+            """ Keep the Bucket under the Fountain! """
+            droplets, FountainAddress = recvSocket.recvFromSock(65535)
 
-        #Block to be fed to the LT-Decoder from the received droplet
+            if not droplets:
+                print("No Droplets Received. \n")
+                break
+            dropletCounter += 1
+            # strip the footer to check the Version and to feed
+            # the Decoder the right block
+            footer = droplets[-4:]
+            VERSION = unpack('!I', footer)[0]                
 
-        lt_block = next(decode.read_blocks(BytesIO(droplets)))
+            #Block to be fed to the LT-Decoder from the received droplet
 
-        # feed the block to the decoder
-        if decoder.consume_block(lt_block):
-            # Return true or false if the decoding is completed
-            # if decoding is complete and file is recovered completely
-            # save the file at the location with appropriate filename
-            print("File Decoded!..")
-            print("Droplets Consumed: ", dropletCounter)
+            lt_block = next(decode.read_blocks(BytesIO(droplets)))
 
-            # Change to the Path
-            chdir(PIPATH)
+            # feed the block to the decoder
+            if decoder.consume_block(lt_block):
+                # Return true or false if the decoding is completed
+                # if decoding is complete and file is recovered completely
+                # save the file at the location with appropriate filename
+                print("File Decoded!..")
+                print("Droplets Consumed: ", dropletCounter)
 
-            # open the file and write the decoded data bytewise
-            with open(PIFILENAME, 'wb') as f:
-                f.write(decoder.bytes_dump())
-            break
+                # Change to the Path
+                chdir(PIPATH)
+
+                # open the file and write the decoded data bytewise
+                with open(PIFILENAME, 'wb') as f:
+                    f.write(decoder.bytes_dump())
+                break
+    except socket.error as e:
+        print('timeout')
+        nackVERSION = 0
+        NACK = pack('!I', nackVERSION)
+        try:
+            recvSocket.sendToSock(NACK, FountainAddress)
+        except socket.error as e:
+            print("Socket Error")
+            recvSocket.closeSock()
+
 
     # create an ACKNOWLEDGEMENT for the Fountain
     # ensuring the file was decoded by sending the 
@@ -93,8 +102,9 @@ def Bucket():
     try:
         recvSocket.sendToSock(ACK, FountainAddress)
     except socket.error as e:
-        print("Socket Error")
-        recvSocket.closeSock()
+        pass
+
+    
 
 
 
