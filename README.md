@@ -44,7 +44,3 @@
 
 * Added Feedback and Version Check for efficiency with Trickle Algorithm 
 
-
-#### Problems
-
-Trickle Timer cannot trigger well
