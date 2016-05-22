@@ -1,19 +1,25 @@
 import socket
+
 from struct import pack, unpack
+
 from sys import exit
 
 # Link-Local group
 MCASTGRP = 'ff02::1'
+
 # port number
 MCASTPORT = 30001
+
 # host (is empty)
 #MCASTHOST = ''
+
 # TTL for Multicasting (default value = 1)
 # Increase value to increase reach
 MTTL = 1
 
 class twinSocket(object):
     """Class for Socket Creation and Binding and also Sending and Receiving data.."""
+
     def __init__(self, sock = None):
         """Create a socket"""
                     
@@ -25,7 +31,8 @@ class twinSocket(object):
             print("SOCKET CREATED....")
 
         except socket.error as e:
-            print("SOCKET CREATION FAILED.. ERROR CODE: " + str(e[0]) + "Message: " + e[1])
+            print("SOCKET CREATION FAILED..")
+            raise e
             exit()
 
         else:
@@ -52,19 +59,23 @@ class twinSocket(object):
             print("SOCKET BINDED....")
 
         except socket.error as e:
-            print("SOCKET BINDING FAILED.. ERROR CODE: " + str(e[0]) + "Message: " + e[1])
+            print("SOCKET BINDING FAILED..")
+            raise e
             exit()
 
     def sendToSock(self, message, host = MCASTGRP, port = MCASTPORT):
         """Class Function to send data over the Socket.."""
+        
         try:
             self.sock.sendto(message, (host, port))
         except socket.error as e:
-            print("SENDING FAILED.. ERROR CODE: " + str(e[0]) + "Message: " + e[1])
+            print("SENDING FAILED.. ")
+            raise e
             exit()
 
     def recvFromSock(self, buffvalue):
         """Class Function to receive data over the Socket.."""
+
         # we receive information in the form of tuple with tuple[0] = dataRec and tuple[1] = tuple of sender
         gotSomething, whereFrom = self.sock.recvfrom(buffvalue)
         source = whereFrom[0]
@@ -73,9 +84,12 @@ class twinSocket(object):
         return gotSomething, source
 
     def closeSock(self):
+        
         print("CLOSING SOCKET..")
         self.sock.close()
 
     def timeout(self, timeoutValue):
+        """Set timeout feature"""
+        
         self.sock.settimeout(timeoutValue)
         print("Timeout Set..")

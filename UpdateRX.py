@@ -11,8 +11,10 @@ from struct import pack, unpack
 
 from twinSocket import *
 
-import time
+from trickle import trickleTimer
 
+IMIN = 0.1
+IMAX = 8
 
 def Bucket():
     """
@@ -31,7 +33,7 @@ def Bucket():
     # reason for specifying a specific name is the fact that
     # INOTIFY-TOOLS will trigger only if there is some change 
     # with the specified 'main.ihex' in the Target Folder
-    PIFILENAME = 'main.ihex'
+    PIFILENAME = 'trialData.tar'
 
     # Create Socket and Bind it to Multicast Port
     recvSocket = twinSocket()
@@ -55,8 +57,8 @@ def Bucket():
             dropletCounter += 1
             # strip the footer to check the Version and to feed
             # the Decoder the right block
-            footer = droplets[-4:]
-            VERSION = unpack('!I', footer)[0]                
+            footer = droplets[-2:]
+            VERSION = unpack('!H', footer)[0]                
 
             #Block to be fed to the LT-Decoder from the received droplet
 
@@ -77,12 +79,22 @@ def Bucket():
                 with open(PIFILENAME, 'wb') as f:
                     f.write(decoder.bytes_dump())
                 break
+    
+    # If the Socket Timeout is triggered
     except socket.error as e:
         print('timeout')
+        # Create a Negative Acknowledgement to send it back to 
+        # the Closed Fountain(Server)
         nackVERSION = 0
         NACK = pack('!I', nackVERSION)
+
+        
         try:
-            recvSocket.sendToSock(NACK, FountainAddress)
+
+           # create a trickle Timer instance
+           rxtt = trickleTimer(recvSocket.sendToSock,{'message':NACK, 'host':FountainAddress, \
+                                                        'port': MCASTPORT}, IMIN, IMAX)
+           rxtt.start()
         except socket.error as e:
             print("Socket Error")
             recvSocket.closeSock()
@@ -91,18 +103,21 @@ def Bucket():
     # create an ACKNOWLEDGEMENT for the Fountain
     # ensuring the file was decoded by sending the 
     # received version number
-
+    #VERSION = 1
     ACK = pack('!I', VERSION)
 
     # Asssuming the Fountain might still be ON and the channel will
     # still be occupied and our data might not reach the fountain
     # we wait for a fixed backoff( in future this backoff will be TRICKLE based )
-    time.sleep(30)
 
     try:
-        recvSocket.sendToSock(ACK, FountainAddress)
+
+        rxtt = trickleTimer(recvSocket.sendToSock,{'message':ACK, 'host':FountainAddress, \
+                                                        'port': MCASTPORT},IMIN, IMAX)
+        rxtt.start()
     except socket.error as e:
         pass
+    Bucket()
 
     
 

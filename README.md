@@ -19,34 +19,32 @@
 ```
 * Since no __Python-3.4__ available for Raspberry Pi-2 (still in Beta)
 ```
-	git clone https://github.com/anrosent/LT-Codes.git
-	cd LT-Codes/
+	git clone https://github.com/anrosent/LT-Code.git
+	cd LT-Code/
 	python3 setup.py install
 ```
 #### Files
 
-1. __Server.py__: Server(Laptop)
+1. __Fountain.py__: Server(Laptop)
 
-    * File to be sent: __intel Hex File__ (`.ihex`)
+    * File to be sent: a File.tar file which consists of `config.ini` and other `.ihex` files
 
-2. __Receiver.py__ : Receiver (Raspberry Pi 2)
+2. __Bucket.py__ : Receiver (Raspberry Pi 2)
+
+	* Files received from Fountain will be stored on a designated folder on Pis
 
 3. __twinSocket.py__ : Socket Wrapper for UDP Datagrams
+	
+	* With `socket.timeout()`
 
 
-#### Added Features (v2.0)
+#### Added Features (v2.1)
 
 * Controlled dissemination of __Fountain__ in order to not flood the shared network of WiFi
 
-* Added Feedback and Version Check for efficiency 
+* Added Feedback and Version Check for efficiency with Trickle Algorithm 
 
 
 #### Problems
 
-~~Can't figure out how to decode data at Pi. Problem arises at `stream.read(12)` since the __bytes__ cannot be *read*~~
-
-Found fix with __Pull Request__ from @anrosent
-
-#### Next Milestone
-
-> Integrate Trickle Algorithm
+Trickle Timer cannot trigger well
