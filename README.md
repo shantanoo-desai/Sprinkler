@@ -17,6 +17,7 @@
     sudo apt-get install python3-pip
     pip3 install lt-code
 ```
+
 * Since no __Python-3.4__ available for Raspberry Pi-2 (still in Beta)
 ```
 	git clone https://github.com/anrosent/LT-Code.git
@@ -37,6 +38,7 @@
 	
 	* With `socket.timeout()`
 
+4. __trickle.py__ : *Trickle Algorithm (RFC 6206)* from [Tony Cheneau](https://github.com/tcheneau/simpleRPL/blob/master/RPL/trickle.py)
 
 #### Added Features (v2.1)
 
