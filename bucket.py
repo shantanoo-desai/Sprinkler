@@ -99,28 +99,26 @@ def Bucket():
             print("Socket Error")
             recvSocket.closeSock()
 
+    else:
+        # create an ACKNOWLEDGEMENT for the Fountain
+        # ensuring the file was decoded by sending the 
+        # received version number
+        #VERSION = 1
+        ACK = pack('!I', VERSION)
 
-    # create an ACKNOWLEDGEMENT for the Fountain
-    # ensuring the file was decoded by sending the 
-    # received version number
-    #VERSION = 1
-    ACK = pack('!I', VERSION)
+        # Asssuming the Fountain might still be ON and the channel will
+        # still be occupied and our data might not reach the fountain
+        # we wait for a fixed backoff( in future this backoff will be TRICKLE based )
 
-    # Asssuming the Fountain might still be ON and the channel will
-    # still be occupied and our data might not reach the fountain
-    # we wait for a fixed backoff( in future this backoff will be TRICKLE based )
+        try:
 
-    try:
-
-        rxtt = trickleTimer(recvSocket.sendToSock,{'message':ACK, 'host':FountainAddress, \
-                                                        'port': MCASTPORT},IMIN, IMAX)
-        rxtt.start()
-    except socket.error as e:
-        pass
-    Bucket()
-
+            rxtt = trickleTimer(recvSocket.sendToSock,{'message':ACK, 'host':FountainAddress, \
+                                                            'port': MCASTPORT},IMIN, IMAX)
+            rxtt.start()
+        except socket.error as e:
+            pass
     
-
+    Bucket()
 
 
 if __name__ == "__main__":

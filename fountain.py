@@ -126,8 +126,7 @@ def Fountain(PATH, FILENAME, VERSION):
                     print("Compliance!")
                 else:
                     # If Bucket has a Timeout then Start the Fountain Again
-                    #Fountain(PATH, FILENAME, VERSION)
-                    print("NC")
+                    Fountain(PATH, FILENAME, VERSION)
         
     ############################################################################################
 
