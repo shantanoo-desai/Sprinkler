@@ -5,7 +5,7 @@ from io import BytesIO
 
 from os import chdir
 
-from sys import exit
+from sys import exit, stdout
 
 from struct import pack, unpack
 
@@ -13,16 +13,20 @@ from twinSocket import *
 
 from trickle import trickleTimer
 
+import time, datetime, logging
+
+logging.basicConfig(stream=stdout, level = logging.INFO)
+
 IMIN = 0.1
 IMAX = 8
 
-def Bucket():
+def Bucket(TimeOut):
     """
     This Function catches the LT-encoded packets from the Fountain 
     and performs decoding based on Belief Propagation to decode the file
     while take a little more packets than the generated size of K at the Fountain  
     """
-    print("Starting the Receiving Mode \n")
+    logging.info("Starting the Receiving Mode")
 
     # Path on the Pi where the file needs to be stored
     # In practice, the decoded file will be stored into a folder
@@ -38,7 +42,7 @@ def Bucket():
     # Create Socket and Bind it to Multicast Port
     recvSocket = twinSocket()
     recvSocket.bindTheSock()
-    recvSocket.timeout(150)
+    recvSocket.timeout(TimeOut)
 
     # create the LT-Decoder 
     decoder = decode.LtDecoder()
@@ -47,42 +51,55 @@ def Bucket():
     dropletCounter = 0
         
     try:
+        timeStamp1 = datetime.datetime.now().replace(microsecond=0)
         while True:
             """ Keep the Bucket under the Fountain! """
             droplets, FountainAddress = recvSocket.recvFromSock(65535)
 
             if not droplets:
-                print("No Droplets Received. \n")
+                logging.error("No Droplets Received")
                 break
-            dropletCounter += 1
-            # strip the footer to check the Version and to feed
-            # the Decoder the right block
-            footer = droplets[-2:]
-            VERSION = unpack('!H', footer)[0]                
+            if len(droplets) == 2:
+                theirVersion = unpack('!H', droplets)[0]
+                global VERSION
+                global rxtt
+                if theirVersion == VERSION:
+                    rxtt.hear_consistent()
+                else:
+                    rxtt.hear_inconsistent()
+            else:
 
-            #Block to be fed to the LT-Decoder from the received droplet
+                dropletCounter += 1
+                # strip the footer to check the Version and to feed
+                # the Decoder the right block
+                footer = droplets[-2:]
+                VERSION = unpack('!H', footer)[0]                
 
-            lt_block = next(decode.read_blocks(BytesIO(droplets)))
+                #Block to be fed to the LT-Decoder from the received droplet
 
-            # feed the block to the decoder
-            if decoder.consume_block(lt_block):
-                # Return true or false if the decoding is completed
-                # if decoding is complete and file is recovered completely
-                # save the file at the location with appropriate filename
-                print("File Decoded!..")
-                print("Droplets Consumed: ", dropletCounter)
+                lt_block = next(decode.read_blocks(BytesIO(droplets)))
 
-                # Change to the Path
-                chdir(PIPATH)
+                # feed the block to the decoder
+                if decoder.consume_block(lt_block):
+                    # Return true or false if the decoding is completed
+                    # if decoding is complete and file is recovered completely
+                    # save the file at the location with appropriate filename
+                    logging.info("File Decoded!..")
+                    timeStamp2 = datetime.datetime.now().replace(microsecond=0)
+                    logging.info("Droplets Consumed: %d" %dropletCounter)
+                    logging.info("time taken: %s", str(timeStamp2 - timeStamp1))
 
-                # open the file and write the decoded data bytewise
-                with open(PIFILENAME, 'wb') as f:
-                    f.write(decoder.bytes_dump())
-                break
+                    # Change to the Path
+                    chdir(PIPATH)
+
+                    # open the file and write the decoded data bytewise
+                    with open(PIFILENAME, 'wb') as f:
+                        f.write(decoder.bytes_dump())
+                    break
     
     # If the Socket Timeout is triggered
     except socket.error as e:
-        print('timeout')
+        logging.info('timeout')
         # Create a Negative Acknowledgement to send it back to 
         # the Closed Fountain(Server)
         nackVERSION = 0
@@ -92,11 +109,11 @@ def Bucket():
         try:
 
            # create a trickle Timer instance
-           rxtt = trickleTimer(recvSocket.sendToSock,{'message':NACK, 'host':FountainAddress, \
+           rxtt = trickleTimer(recvSocket.sendToSock,{'message':NACK, 'host':MCASTGRP, \
                                                         'port': MCASTPORT}, IMIN, IMAX)
            rxtt.start()
         except socket.error as e:
-            print("Socket Error")
+            logging.exception("Socket Error")
             recvSocket.closeSock()
 
     else:
@@ -112,14 +129,16 @@ def Bucket():
 
         try:
 
-            rxtt = trickleTimer(recvSocket.sendToSock,{'message':ACK, 'host':FountainAddress, \
+            rxtt = trickleTimer(recvSocket.sendToSock,{'message':ACK, 'host':MCASTGRP, \
                                                             'port': MCASTPORT},IMIN, IMAX)
             rxtt.start()
         except socket.error as e:
             pass
     
-    Bucket()
+    logging.info("wait & restart")
+    time.sleep(5)
+    Bucket(None)
 
 
 if __name__ == "__main__":
-    Bucket()
+    Bucket(TimeOut = 120)
