@@ -10,12 +10,21 @@ from struct import pack, unpack
 
 from twinSocket import *
 
+from trickle import trickleTimer
+
 from math import log, sqrt, ceil
 
 import argparse
 
 import sys
 
+import datetime
+
+import time
+
+import logging
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 Blocksize = 1452
 
@@ -47,8 +56,8 @@ def Fountain(PATH, FILENAME, VERSION):
         
         fileSize, Blocks = encode._split_file(f, Blocksize)
         K = len(Blocks)
-        print("FILE SIZE: %d Bytes" %fileSize)
-        print("Number of Blocks: ", K)
+        logging.info("FILE SIZE: %d Bytes" %fileSize)
+        logging.info("Number of Blocks: %d" %K)
 
     """
         Calculation of Gamma is based on the Paper: 
@@ -84,7 +93,8 @@ def Fountain(PATH, FILENAME, VERSION):
 
 
         while True:
-            print("Starting Fountain")
+            timeStamp1 = datetime.datetime.now().replace(microsecond=0)
+            logging.info("Starting Fountain")
 
             for eachBlock in encode.encoder(f, Blocksize):
                 # Encode each incoming Block with the LT-Encoder scheme
@@ -98,16 +108,20 @@ def Fountain(PATH, FILENAME, VERSION):
                     packetCounter += 1
 
                     # If packets reach the Upper Bound Close the Fountain
-                    if (packetCounter > ((1+Gamma)*K)):
-                        print("Packets Sent:", packetCounter)
-                        print("Closing Fountain")
+                    if (packetCounter >= ((1+Gamma)*K)):
+                        timeStamp2 = datetime.datetime.now().replace(microsecond=0)
+                        logging.info("Packets Sent: %d" %packetCounter)
+                        logging.info("Time needed: %s" %str(timeStamp2 - timeStamp1))
+                        logging.info("Closing Fountain")
                         break
 
                 except socket.error as e:
                     # Exception Raise
                     raise e
                     servSocket.closeSock()
-
+            txtt = trickleTimer(servSocket.sendToSock,{'message': pack('!H', VERSION), 'host': MCASTGRP,\
+                         'port': MCASTPORT}, 0.1, 8)
+            txtt.start()
             while True:
                 #Once Fountain is closed listen for NACK/ACKS from Buckets
 
@@ -118,14 +132,18 @@ def Fountain(PATH, FILENAME, VERSION):
                     break
 
                 # Print the Bucket Address
-                print(Buckets)
+                #print(Buckets)
 
                 #Version Check
                 theirVersion = unpack('!I', response)[0]
                 if theirVersion == VERSION:
-                    print("Compliance!")
+                    logging.info("Compliance")
+                    txtt.hear_consistent()
                 else:
                     # If Bucket has a Timeout then Start the Fountain Again
+                    logging.info("Non Compliance")
+                    txtt.hear_inconsistent()
+                    time.sleep(5)
                     Fountain(PATH, FILENAME, VERSION)
         
     ############################################################################################
