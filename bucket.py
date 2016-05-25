@@ -13,14 +13,14 @@ from twinSocket import *
 
 from trickle import trickleTimer
 
-import time, datetime, logging
+import datetime, logging
 
 logging.basicConfig(stream=stdout, level = logging.INFO)
 
-IMIN = 0.1
+IMIN = 0.2
 IMAX = 8
 
-def Bucket(TimeOut):
+def Bucket():
     """
     This Function catches the LT-encoded packets from the Fountain 
     and performs decoding based on Belief Propagation to decode the file
@@ -38,11 +38,6 @@ def Bucket(TimeOut):
     # INOTIFY-TOOLS will trigger only if there is some change 
     # with the specified 'main.ihex' in the Target Folder
     PIFILENAME = 'trialData.tar'
-
-    # Create Socket and Bind it to Multicast Port
-    recvSocket = twinSocket()
-    recvSocket.bindTheSock()
-    recvSocket.timeout(TimeOut)
 
     # create the LT-Decoder 
     decoder = decode.LtDecoder()
@@ -97,48 +92,47 @@ def Bucket(TimeOut):
                         f.write(decoder.bytes_dump())
                     break
     
-    # If the Socket Timeout is triggered
+    
     except socket.error as e:
-        logging.info('timeout')
-        # Create a Negative Acknowledgement to send it back to 
-        # the Closed Fountain(Server)
-        nackVERSION = 0
-        NACK = pack('!I', nackVERSION)
-
-        
-        try:
-
-           # create a trickle Timer instance
-           rxtt = trickleTimer(recvSocket.sendToSock,{'message':NACK, 'host':MCASTGRP, \
-                                                        'port': MCASTPORT}, IMIN, IMAX)
-           rxtt.start()
-        except socket.error as e:
-            logging.exception("Socket Error")
-            recvSocket.closeSock()
+        logging.exception('Error: While Sending')
+        recvSocket.closeSock()
 
     else:
-        # create an ACKNOWLEDGEMENT for the Fountain
+        # create an updated trickMSG for the Fountain
         # ensuring the file was decoded by sending the 
         # received version number
-        #VERSION = 1
-        ACK = pack('!I', VERSION)
 
-        # Asssuming the Fountain might still be ON and the channel will
-        # still be occupied and our data might not reach the fountain
-        # we wait for a fixed backoff( in future this backoff will be TRICKLE based )
+        newVersion = pack('!H', VERSION)
+        rxtt.cancel()
+        
+        #New Trickle Timer Instance
 
         try:
 
-            rxtt = trickleTimer(recvSocket.sendToSock,{'message':ACK, 'host':MCASTGRP, \
+            rxtt = trickleTimer(recvSocket.sendToSock,{'message':newVersion, 'host':MCASTGRP, \
                                                             'port': MCASTPORT},IMIN, IMAX)
             rxtt.start()
         except socket.error as e:
-            pass
+            logging.exception("Error: triggering newVersion trickleTimer")
     
-    logging.info("wait & restart")
-    time.sleep(5)
-    Bucket(None)
+    Bucket()
 
 
 if __name__ == "__main__":
-    Bucket(TimeOut = 120)
+
+    # Create Socket and Bind it to Multicast Port
+    recvSocket = twinSocket()
+    recvSocket.bindTheSock()
+
+    # Initial Version
+    myVersion = 0
+
+    trickMSG = pack('!H', myVersion)
+
+    # create a trickle Timer instance
+    rxtt = trickleTimer(recvSocket.sendToSock,{'message':trickMSG, 'host':MCASTGRP, \
+                                                        'port': MCASTPORT}, IMIN, IMAX)
+    rxtt.start()
+
+
+    Bucket()

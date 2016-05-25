@@ -120,7 +120,7 @@ def Fountain(PATH, FILENAME, VERSION):
                     raise e
                     servSocket.closeSock()
             txtt = trickleTimer(servSocket.sendToSock,{'message': pack('!H', VERSION), 'host': MCASTGRP,\
-                         'port': MCASTPORT}, 0.1, 8)
+                         'port': MCASTPORT},0.2, 8)
             txtt.start()
             while True:
                 #Once Fountain is closed listen for NACK/ACKS from Buckets
@@ -135,7 +135,7 @@ def Fountain(PATH, FILENAME, VERSION):
                 #print(Buckets)
 
                 #Version Check
-                theirVersion = unpack('!I', response)[0]
+                theirVersion = unpack('!H', response)[0]
                 if theirVersion == VERSION:
                     logging.info("Compliance")
                     txtt.hear_consistent()
