@@ -38,9 +38,15 @@
 
 4. __trickle.py__ : *Trickle Algorithm (RFC 6206)* from [Tony Cheneau](https://github.com/tcheneau/simpleRPL/blob/master/RPL/trickle.py)
 
-#### Added Features (v2.1)
+#### Added Features (v2.1-beta)
 
 * Controlled dissemination of __Fountain__ in order to not flood the shared network of WiFi
 
 * Added Version Check using Trickle Algorithm
+
+* Optimized Trickle Parameters according to Environment
+
+* ~~`socket.timeout()`~~
+
+* added __mDNS__ name for received messages
 
