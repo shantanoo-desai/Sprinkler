@@ -17,8 +17,9 @@ import datetime, logging
 
 logging.basicConfig(stream=stdout, level = logging.INFO)
 
-IMIN = 0.2
-IMAX = 8
+# Optimized Trickle Parameters for Single Hop setup
+IMIN = 4
+IMAX = 9
 
 def Bucket():
     """
@@ -44,6 +45,7 @@ def Bucket():
 
     # create a packet Counter to check if we needed more than K droplets
     dropletCounter = 0
+    failure = 0
         
     try:
         timeStamp1 = datetime.datetime.now().replace(microsecond=0)
@@ -63,7 +65,7 @@ def Bucket():
                 else:
                     rxtt.hear_inconsistent()
             else:
-
+                
                 dropletCounter += 1
                 # strip the footer to check the Version and to feed
                 # the Decoder the right block
@@ -91,7 +93,8 @@ def Bucket():
                     with open(PIFILENAME, 'wb') as f:
                         f.write(decoder.bytes_dump())
                     break
-    
+                failure += 1
+        logging.info("Total Droplets: Received %d" %(failure+dropletCounter))
     
     except socket.error as e:
         logging.exception('Error: While Sending')
@@ -126,6 +129,7 @@ if __name__ == "__main__":
 
     # Initial Version
     myVersion = 0
+    VERSION = 1 # assume so, since VERSION initially wont be available
 
     trickMSG = pack('!H', myVersion)
 

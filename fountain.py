@@ -120,7 +120,7 @@ def Fountain(PATH, FILENAME, VERSION):
                     raise e
                     servSocket.closeSock()
             txtt = trickleTimer(servSocket.sendToSock,{'message': pack('!H', VERSION), 'host': MCASTGRP,\
-                         'port': MCASTPORT},0.2, 8)
+                         'port': MCASTPORT},4, 9)
             txtt.start()
             while True:
                 #Once Fountain is closed listen for NACK/ACKS from Buckets
