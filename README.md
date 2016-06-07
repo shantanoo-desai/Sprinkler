@@ -22,21 +22,19 @@
 ```
 	git clone https://github.com/anrosent/LT-Code.git
 	cd LT-Code/
-	python3 setup.py install
+	sudo python3 setup.py install
 ```
 #### Files
 
 1. __Fountain.py__: Server(Laptop)
 
-    * File to be sent: a File.tar file which consists of `config.ini` and other `.ihex` files
+    * File to be sent: a File.tar file which consists of `config.json` and other `.ihex` files
 
 2. __Bucket.py__ : Receiver (Raspberry Pi 2)
 
 	* Files received from Fountain will be stored on a designated folder on Pis
 
 3. __twinSocket.py__ : Socket Wrapper for UDP Datagrams
-	
-	* With `socket.timeout()`
 
 4. __trickle.py__ : *Trickle Algorithm (RFC 6206)* from [Tony Cheneau](https://github.com/tcheneau/simpleRPL/blob/master/RPL/trickle.py)
 
@@ -44,5 +42,5 @@
 
 * Controlled dissemination of __Fountain__ in order to not flood the shared network of WiFi
 
-* Added Feedback and Version Check for efficiency with Trickle Algorithm 
+* Added Version Check using Trickle Algorithm
 
