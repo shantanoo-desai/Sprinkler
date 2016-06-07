@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import socket
 
 from struct import pack, unpack
@@ -88,8 +89,9 @@ class twinSocket(object):
         print("CLOSING SOCKET..")
         self.sock.close()
 
-    def timeout(self, timeoutValue):
-        """Set timeout feature"""
-        
-        self.sock.settimeout(timeoutValue)
-        print("Timeout Set..")
+    def getLocalName(self, ipWhole):
+        ipOnly = ipWhole.split('%')[0]
+
+        localName = socket.gethostbyaddr(ipOnly)[0]
+
+        return localName

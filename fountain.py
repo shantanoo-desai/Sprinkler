@@ -132,7 +132,8 @@ def Fountain(PATH, FILENAME, VERSION):
                     break
 
                 # Print the Bucket Address
-                #print(Buckets)
+                bucketName = servSocket.getLocalName(Buckets)
+                logging.info(bucketName)
 
                 #Version Check
                 theirVersion = unpack('!H', response)[0]
