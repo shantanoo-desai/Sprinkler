@@ -60,7 +60,8 @@ def fountainParameters(FILENAME, BLOCKSIZE):
     return calcK, calcGamma
 
 
-def checkConsistency(theirVersion, VERSION):
+def checkConsistency(theirVersion, VERSION, founTT):
+    """Function to check trickle message consistency RFC6206"""
 
     if theirVersion == VERSION:
         logger.debug("their Version:%d, our Version:%d"%(theirVersion,VERSION))
@@ -142,7 +143,7 @@ def fountain(FILENAME, BLOCKSIZE, VERSION):
                     break
                 try:
                     bucketName = fSocket.getLocalName(Buckets)
-                    logger.info("message from-------", bucketName)
+                    logger.info("message from-------%s" %bucketName)
 
                 except socket.herror:
                     pass
@@ -150,7 +151,7 @@ def fountain(FILENAME, BLOCKSIZE, VERSION):
                     # Unpack the trickleMessage
                     theirVersion = unpack('!H', response)[0]
                     # Step : 7
-                    checkConsistency(theirVersion, VERSION)
+                    checkConsistency(theirVersion, VERSION, founTT)
 
 
             
