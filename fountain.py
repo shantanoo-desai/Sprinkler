@@ -14,7 +14,7 @@ from trickle import trickleTimer
 
 from os import chdir, path
 
-import argparse, sys, datetime, logging
+import argparse, sys, datetime, logging, threading
 
 # Trickle Parameters Optimized for Setup
 IMAX = 4
@@ -71,16 +71,18 @@ def checkConsistency(theirVersion, VERSION, founTT):
         logger.debug("their Version:%d, our Version:%d"%(theirVersion,VERSION))
         logger.info("Inconsistency Detected")
         founTT.hear_inconsistent()
-    
+
+        # If theirs and our VERSION values don't match Start the Fountain Again
+        # THREAD here... NOT SURE IF GOOD IDEA HERE
+        fThread = threading.Thread(target = fountain, args=(FILENAME, BLOCKSIZE, VERSION), daemon=True)
+        fThread.start()
+        fThread.join()
+    logger.info("Exiting the Check")
 
 def fountain(FILENAME, BLOCKSIZE, VERSION):
     """Main Fountain code: will send encoded Packets upto a certain
        limit over a multicast channel
     """
-
-    # Open A MCAST socket and Bind it
-    fSocket = twinSocket()
-    fSocket.bindTheSock()
 
     # Bring in the Fountain Paramaters
     K, Gamma = fountainParameters(FILENAME, BLOCKSIZE)
@@ -133,25 +135,37 @@ def fountain(FILENAME, BLOCKSIZE, VERSION):
             founTT = trickleTimer(fSocket.sendToSock, {'message': pack('!H', VERSION), 'host': MCASTGRP, 'port': MCASTPORT}, IMAX, IMIN)
 
             founTT.start()
+            Cognition(fSocket, VERSION, founTT) # IS THIS HACKY OR GOOD??
+
+def Cognition(fSocket, VERSION, founTT):
+    logger.info("Entering Cognition State")
+
+    while True:
+        """Go in to Cognition(Receiving) State for Consistency Check"""
+        # Step : 6
+        print("Cognition state")
+
+        response, Buckets = fSocket.recvFromSock(512)
+
+        if not response:
+            break
+        try:
+            bucketName = fSocket.getLocalName(Buckets)
+            logger.info("message from-------%s" %bucketName)
+
+        except socket.herror:
+                pass
+        else:
+            # Unpack the trickleMessage
+            theirVersion = unpack('!H', response)[0]
             
-            while True:
-                """Go in to Cognition(Receiving) State for Consistency Check"""
-                # Step : 6
-                response, Buckets = fSocket.recvFromSock(512)
+            # Step : 7 USING a Thread called Checker. Assuming once Thread is
+            # done checking it returns back here.. Back to Cognition state
+            checker = threading.Thread(target=checkConsistency, args=(theirVersion, VERSION, founTT), daemon=True)
+            checker.start()
+            checker.join()
 
-                if not response:
-                    break
-                try:
-                    bucketName = fSocket.getLocalName(Buckets)
-                    logger.info("message from-------%s" %bucketName)
 
-                except socket.herror:
-                    pass
-                else:
-                    # Unpack the trickleMessage
-                    theirVersion = unpack('!H', response)[0]
-                    # Step : 7
-                    checkConsistency(theirVersion, VERSION, founTT)
 
 
             
@@ -179,5 +193,9 @@ if __name__ == '__main__':
     FILENAME = args.filename
     VERSION = args.version
     BLOCKSIZE = args.blocksize
+
+    # Open A MCAST socket and Bind it
+    fSocket = twinSocket()
+    fSocket.bindTheSock()
     
     fountain(FILENAME, BLOCKSIZE, VERSION)
