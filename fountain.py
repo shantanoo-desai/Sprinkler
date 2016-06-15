@@ -164,11 +164,7 @@ def Cognition(fSocket, VERSION, founTT):
             checker = threading.Thread(target=checkConsistency, args=(theirVersion, VERSION, founTT), daemon=True)
             checker.start()
             checker.join()
-
-
-
-
-            
+     
 
 if __name__ == '__main__':
 
