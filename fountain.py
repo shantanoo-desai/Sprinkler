@@ -14,10 +14,10 @@ from trickle import trickleTimer
 
 from os import chdir, path
 
-import argparse, sys, datetime, logging, threading
+import argparse, sys, datetime, logging, threading, time
 
 # Trickle Parameters Optimized for Setup
-IMAX = 4
+IMAX = 2
 IMIN = 9
 
 # Logging Configuration
@@ -83,6 +83,15 @@ def fountain(FILENAME, BLOCKSIZE, VERSION):
     """Main Fountain code: will send encoded Packets upto a certain
        limit over a multicast channel
     """
+
+    ########### This is experimental --> Kind of a back off and listen mechanism
+    print("Sending Notification!..")
+
+    notifier = 255
+    fNotifier = pack('!H', notifier)
+    fSocket.sendToSock(fNotifier, MCASTGRP)
+
+    time.sleep(10)
 
     # Bring in the Fountain Paramaters
     K, Gamma = fountainParameters(FILENAME, BLOCKSIZE)
@@ -173,7 +182,7 @@ if __name__ == '__main__':
     parser.add_argument('path', type = str, help = 'path to file')
     parser.add_argument('filename', type = str, help = 'name of file')
     parser.add_argument('version', type = int, help = 'version number')
-    parser.add_argument('blocksize', type = int, help = 'mtu size < 1500 B')
+    parser.add_argument('blocksize', type = int, default = 1452,help = 'mtu size < 1500 B')
 
     args = parser.parse_args()
 
