@@ -45,7 +45,7 @@ def checkConsistency(theirVersion, myVersion, buckTT):
         # if someone has a newer version!! 
         logger.info("Our Version Lagging. Cognition State on!")
         buckTT.hear_inconsistent()
-
+        
     elif myVersion > theirVersion:
     
         # if I am better at the Version of Data
