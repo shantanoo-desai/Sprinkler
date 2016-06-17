@@ -17,8 +17,8 @@ from os import chdir, path
 import argparse, sys, datetime, logging, threading, time
 
 # Trickle Parameters Optimized for Setup
-IMAX = 2
-IMIN = 9
+IMAX = 10
+IMIN = 8
 
 # Logging Configuration
 logger = logging.getLogger("Fountain")
