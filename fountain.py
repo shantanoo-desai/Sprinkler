@@ -24,178 +24,203 @@ from lt import encode, decode
 
 from lt.sampler import DEFAULT_DELTA
 
-from os import chdir, path
-
 from struct import pack, unpack
+
+from math import log, sqrt, ceil
 
 from twinSocket import *
 
 from trickle import trickleTimer
 
-from math import log, sqrt, ceil
+from os import chdir, path
 
-import argparse
+import argparse, sys, datetime, logging, threading, time
 
-import sys
+# Trickle Parameters Optimized for Setup
+IMAX = 2
+IMIN = 9
 
-import datetime
+# Logging Configuration
+logger = logging.getLogger("Fountain")
+logger.setLevel(logging.DEBUG)
 
-import time
+handler = logging.FileHandler('fountain.log')
+handler.setLevel(logging.DEBUG)
 
-import logging
+# format for logging
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
-Blocksize = 1452
-
-def addFooter(encodedBlock):
-    """ Add at the end of each LT-encoded Block add a 2B footer to indicate Version """
+def addFooter(encodedBlock, VERSION):
+    """concatenate a 2B Version after each LT-encoded Block"""
 
     packedData = encodedBlock + pack('!H', VERSION)
     return packedData
 
 
-
-
-def Fountain(PATH, FILENAME, VERSION):
-    """ Main Program that starts/stops the Fountain and
-        anticipates an ACK from the Buckets if File is
-        Decoded..
-        If File is not decoded at the Receiver then a 
-        Socket Timeout will trigger a NACK to indicate
-        the Fountain that a bit more packets are needed
+def fountainParameters(FILENAME, BLOCKSIZE):
+    """Calculation of Parameters for Controlling the Fountain
+       Returns the K and Gamma
     """
-
-    ##   Determination of Parameters ##
 
     with open(FILENAME, 'rb') as f:
-        """ To calculate the size of the File and and the number of blocks
-            the number of the Blocks depends on the "Blocksize" < 1500 B to avoid IPv6
-            Fragments at source and avoid risk of data being deleted from receiver buffer
-        """
-        
-        fileSize, Blocks = encode._split_file(f, Blocksize)
-        K = len(Blocks)
-        logging.info("FILE SIZE: %d Bytes" %fileSize)
-        logging.info("Number of Blocks: %d" %K)
 
+        sizeOfFile, blockCount = encode._split_file(f, BLOCKSIZE)
+
+        calcK = len(blockCount)
+
+        logger.debug("No. of Blocks: %d" %calcK)
+        logger.debug("FileSize in bytes: %d" %sizeOfFile)
+
+        calcGamma =  ceil(sqrt(calcK) * (log(calcK/DEFAULT_DELTA)**2)/calcK)
+        logger.debug("Gamma: %d" %calcGamma)
+
+    return calcK, calcGamma
+
+
+def checkConsistency(theirVersion, VERSION, founTT):
+    """Function to check trickle message consistency RFC6206"""
+
+    if theirVersion == VERSION:
+        logger.debug("their Version:%d, our Version:%d"%(theirVersion,VERSION))
+        logger.info("Consistency Detected")
+        founTT.hear_consistent()
+    else:
+        logger.debug("their Version:%d, our Version:%d"%(theirVersion,VERSION))
+        logger.info("Inconsistency Detected")
+        founTT.hear_inconsistent()
+
+        # If theirs and our VERSION values don't match Start the Fountain Again
+        # THREAD here... NOT SURE IF GOOD IDEA HERE
+        fThread = threading.Thread(target = fountain, args=(FILENAME, BLOCKSIZE, VERSION), daemon=True)
+        fThread.start()
+        fThread.join()
+    logger.info("Exiting the Check")
+
+def fountain(FILENAME, BLOCKSIZE, VERSION):
+    """Main Fountain code: will send encoded Packets upto a certain
+       limit over a multicast channel
     """
-        Calculation of Gamma is based on the Paper: 
-        The Use and Performance of LT Codes for Multicast with Relaying 
-        by Matthew T. Tang, Brooke Shrader & Thomas C. Royster IV
 
-        Gamma is an additional factor which is can assure that a certain number of encoded packets
-        such as K' > K is needed to completely decode the file at decoder(Bucket)
-        Relation : K' = K(1 + Gamma)
-    
-    """
-    Gamma = ceil(sqrt(K) * (log(K/DEFAULT_DELTA)**2)/K)
+    ########### This is experimental --> Kind of a back off and listen mechanism
+    print("Sending Notification!..")
 
-    
-    ## Starting a Fountain ##
+    notifier = 255
+    fNotifier = pack('!H', notifier)
+    fSocket.sendToSock(fNotifier, MCASTGRP)
+
+    time.sleep(10)
+
+    # Bring in the Fountain Paramaters
+    K, Gamma = fountainParameters(FILENAME, BLOCKSIZE)
 
     with open(FILENAME, 'rb') as f:
-        """ 
-            1. Parse the Complete Input File
-            2. Encode Each Packet
-            3. Add Footer
-            4. Send it to Multicast Port (ff02::1, 30001)
-            5. Check for the Upper Bound and once crossed close Fountain
-            6. Listen on Port for NACK/ACK from Buckets
-            7. If(ACK) - Do Nothing / Else Start Fountain again
         """
-        #Create Socket & Bind it to Multicast Port
-        servSocket = twinSocket()
-        servSocket.bindTheSock()
+            Methodology for Fountain:
+            1. parse the Input file
+            2. encode each block and add footer
+            3. send the droplet(block)
+            4. control the fountain using the limit K'=(1+Gamma)K
+            5. start the trickle timer for consistency check
+            6. anticipate the trickle messages from buckets
+            7. based on in/consistency restart/listen
+        """
 
-        # Counter to check if we are not sending a lot of packets than K'
         packetCounter = 0
 
+        while (1):
 
-        while True:
             timeStamp1 = datetime.datetime.now().replace(microsecond=0)
-            logging.info("Starting Fountain")
+            logger.info("Starting Fountain")
 
-            for eachBlock in encode.encoder(f, Blocksize):
-                # Encode each incoming Block with the LT-Encoder scheme
-                # Add a 2 Byte footer at end of each block
-                dataToSend = addFooter(eachBlock)
+            for eachBlock in encode.encoder(f, BLOCKSIZE):
+                # Step : 2
+                droplet = addFooter(eachBlock, VERSION)
 
                 try:
-                    # Send the Packet
-                    servSocket.sendToSock(dataToSend,MCASTGRP)
-                    # Count the number of Packets sent
+                    # Step : 3
+                    fSocket.sendToSock(droplet, MCASTGRP)
                     packetCounter += 1
 
-                    # If packets reach the Upper Bound Close the Fountain
-                    if (packetCounter >= ((1+Gamma)*K)):
+                    # Step : 4
+                    if( packetCounter >= (1+Gamma)*K ):
                         timeStamp2 = datetime.datetime.now().replace(microsecond=0)
-                        logging.info("Packets Sent: %d" %packetCounter)
-                        logging.info("Time needed: %s" %str(timeStamp2 - timeStamp1))
-                        logging.info("Closing Fountain")
+
+                        logger.debug("Droplets Sent: %d" %packetCounter)
+                        logger.debug("Time Needed: %s" %str(timeStamp2 - timeStamp1))
+                        logger.info("Closing Fountain")
                         break
 
-                except socket.error as e:
-                    # Exception Raise
-                    raise e
-                    servSocket.closeSock()
-            txtt = trickleTimer(servSocket.sendToSock,{'message': pack('!H', VERSION), 'host': MCASTGRP,\
-                         'port': MCASTPORT},0.2, 8)
-            txtt.start()
-            while True:
-                #Once Fountain is closed listen for NACK/ACKS from Buckets
+                except socket.error as sockE:
+                    raise sockE
+                    fSocket.closeSock()
 
-                response, Buckets = servSocket.recvFromSock(512)
+            # Out of the encoder block
+            # Step : 5
+            # start the Trickle Timer by sending our Current Code Version
 
-                if not response:
-                    # If not response type
-                    break
+            founTT = trickleTimer(fSocket.sendToSock, {'message': pack('!H', VERSION), 'host': MCASTGRP, 'port': MCASTPORT}, IMAX, IMIN)
 
-                # Print the Bucket Address
-                #print(Buckets)
+            founTT.start()
+            Cognition(fSocket, VERSION, founTT) # IS THIS HACKY OR GOOD??
 
-                #Version Check
-                theirVersion = unpack('!H', response)[0]
-                if theirVersion == VERSION:
-                    logging.info("Compliance")
-                    txtt.hear_consistent()
-                else:
-                    # If Bucket has a Timeout then Start the Fountain Again
-                    logging.info("Non Compliance")
-                    txtt.hear_inconsistent()
-                    time.sleep(5)
-                    Fountain(PATH, FILENAME, VERSION)
-        
-    ############################################################################################
+def Cognition(fSocket, VERSION, founTT):
+    logger.info("Entering Cognition State")
 
-    
+    while True:
+        """Go in to Cognition(Receiving) State for Consistency Check"""
+        # Step : 6
+        print("Cognition state")
 
+        response, Buckets = fSocket.recvFromSock(512)
 
-if __name__ == "__main__":
+        if not response:
+            break
+        try:
+            bucketName = fSocket.getLocalName(Buckets)
+            logger.info("message from-------%s" %bucketName)
+
+        except socket.herror:
+                pass
+        else:
+            # Unpack the trickleMessage
+            theirVersion = unpack('!H', response)[0]
+            
+            # Step : 7 USING a Thread called Checker. Assuming once Thread is
+            # done checking it returns back here.. Back to Cognition state
+            checker = threading.Thread(target=checkConsistency, args=(theirVersion, VERSION, founTT), daemon=True)
+            checker.start()
+            checker.join()
+     
+
+if __name__ == '__main__':
+
     parser = argparse.ArgumentParser("Fountain")
 
-    parser.add_argument('path', type = str, help = 'Path to your file')
-
-    parser.add_argument('filename', type = str, help = 'Intel HEX file')
-
-    parser.add_argument('version', type = int, default = 1, help = 'Version Number')
+    parser.add_argument('path', type = str, help = 'path to file')
+    parser.add_argument('filename', type = str, help = 'name of file')
+    parser.add_argument('version', type = int, help = 'version number')
+    parser.add_argument('blocksize', type = int, default = 1452,help = 'mtu size < 1500 B')
 
     args = parser.parse_args()
 
-    # check path argument
     if not path.exists(args.path):
-        print("Path doesn't exists", file = sys.stderr)
+        print("Path doesn't exist", file = sys.stderr)
         sys.exit(1)
-    PATH = args.path
-    chdir(PATH)
+    chdir(args.path)
 
-    # check file argument 
     if not path.isfile(args.filename):
-        print("File doesn't exists", file = sys.stderr)
+        print("File doesn't exist", file = sys.stderr)
         sys.exit(1)
+
     FILENAME = args.filename
-
-    # Version
     VERSION = args.version
+    BLOCKSIZE = args.blocksize
 
-    Fountain(PATH, FILENAME, VERSION)
+    # Open A MCAST socket and Bind it
+    fSocket = twinSocket()
+    fSocket.bindTheSock()
+    
+    fountain(FILENAME, BLOCKSIZE, VERSION)

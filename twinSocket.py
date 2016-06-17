@@ -17,6 +17,7 @@
 *
 * This file is part of TWIN project
 """
+#!/usr/bin/python3
 
 import socket
 
@@ -35,7 +36,7 @@ MCASTPORT = 30001
 
 # TTL for Multicasting (default value = 1)
 # Increase value to increase reach
-MTTL = 1
+MTTL = 2
 
 class twinSocket(object):
     """Class for Socket Creation and Binding and also Sending and Receiving data.."""
@@ -108,8 +109,9 @@ class twinSocket(object):
         print("CLOSING SOCKET..")
         self.sock.close()
 
-    def timeout(self, timeoutValue):
-        """Set timeout feature"""
-        
-        self.sock.settimeout(timeoutValue)
-        print("Timeout Set..")
+    def getLocalName(self, ipWhole):
+        ipOnly = ipWhole.split('%')[0]
+
+        localName = socket.gethostbyaddr(ipOnly)[0]
+
+        return localName
