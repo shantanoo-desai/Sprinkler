@@ -31,7 +31,7 @@ class trickleTimer(object):
     t = 0  # time within the current interval
     c = 0  # a counter
 
-    def __init__(self, function, kwargs={}, Imin=0.1, Imax=16, k=2):
+    def __init__(self, function, kwargs={}, Imin=10, Imax=5, k=1):
         """Trickle timer:
         - function: function to execute when the timer expires
         - kwargs: argument of the function
@@ -121,7 +121,7 @@ class trickleTimer(object):
         with self.lock:
             # step 6
             logger.info("hearing an inconsistent message, reset trickle timer")
-            if self.I != self.Imin:
+            if self.I > self.Imin:
                 self.I = self.Imin
                 self.c = 0
                 self.t = uniform(self.I / 2, self.I)

@@ -32,55 +32,36 @@ from twinSocket import *
 
 from trickle import trickleTimer
 
-import datetime, logging, time
+import datetime, logging, time, threading
 
-# Optimized Trickle Parameters for Single Hop setup
-IMIN = 10
-IMAX = 9
+from fountain import fountain, checkConsistency
 
-# Logging Details
+import global_variables as gv
+
+
+recvSocket = twinSocket()
+
+
+# Logging Configuration
 logger = logging.getLogger("Bucket")
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('bucket.log')
-handler.setLevel(logging.ERROR)
+handler = logging.FileHandler('./logFiles/bucket.log')
+handler.setLevel(logging.DEBUG)
 
-#logging format -> Time will be irrelevant since in AdHoc no NTP Server
-formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+# format for logging
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-def checkConsistency(theirVersion, myVersion, buckTT):
-    """Function to check trickle message consistency RF6206"""
 
-    if theirVersion == myVersion:
-    
-        logger.debug("their Version:%d our Version:%d"%(theirVersion, myVersion))
-        logger.info("Consistency Detected")
-        buckTT.hear_consistent()
-    
-    elif theirVersion > myVersion:
-
-        # if someone has a newer version!! 
-        logger.info("Our Version Lagging. Cognition State on!")
-        buckTT.hear_inconsistent()
-
-    elif myVersion > theirVersion:
-    
-        # if I am better at the Version of Data
-
-        logger.info("Our Version is Higher. Start Fountain")
-        ### START FOUNTAIN HERE
-
-
-
-def Bucket(myVersion):
+def Bucket(version):
     """Receive Droplets from the Fountain and decode the File.
         Trigger Trickle Timer for Consistency Check  
     """
     logger.info("Starting Cognition State")
-
+    
     # create the LT-Decoder 
     decoder = decode.LtDecoder()
 
@@ -88,6 +69,7 @@ def Bucket(myVersion):
     dropletCounter = 0
         
     try:
+        
         while True:
             """ Keep the Bucket under the Fountain! """
             droplets, FountainAddress = recvSocket.recvFromSock(65536)
@@ -106,11 +88,15 @@ def Bucket(myVersion):
                 if decider == 255:
                     # if notifier message do nothing but listen
                     logger.info("Received a Notifier Message")
+                    logger.info("heard from %s"%FountainAddress)
+                    
 
                 elif decider != 255:
                     # if not Notifier Message then it must be their Version
                     theirVersion = decider
-                    checkConsistency(theirVersion, myVersion, buckTT)
+                    logger.info("Version check for %s"%FountainAddress)
+                    global buckTT
+                    checkConsistency(theirVersion, version,buckTT)
 
             # If Droplets..
             elif len(droplets) > 1000:
@@ -123,7 +109,7 @@ def Bucket(myVersion):
                 founVERSION = unpack('!H', footer)[0]
 
                 # if myVersion and founVersion are same try to do nothing since we already have the file
-                if myVersion == founVERSION:
+                if version == founVERSION:
                     try:
                         pass
                     except:
@@ -142,12 +128,14 @@ def Bucket(myVersion):
                         # save the file at the location with appropriate filename
                         logger.info("File Decoded!..")
                         logger.debug("Droplets Consumed: %d" %dropletCounter)
+                        logger.info("Source: %s"%FountainAddress)
+                        gv.fountCache.append(FountainAddress)
 
                         # Change to the Path
-                        chdir(PIPATH)
+                        chdir(gv.PATH)
 
                         # open the file and write the decoded data bytewise
-                        with open(PIFILENAME, 'wb') as f:
+                        with open(gv.FILENAME, 'wb') as f:
                             f.write(decoder.bytes_dump())
 
                         break
@@ -162,49 +150,51 @@ def Bucket(myVersion):
         # create an updated trickMSG for the Fountain
         # ensuring the file was decoded by sending the 
         # received version number
+        global myVersion
         myVersion = founVERSION
-        print("myVersion now %d"%myVersion)
-        Version = pack('!H', myVersion)
+        version = myVersion
+        print("myVersion now %d"%version)
+        Version = pack('!H', version)
         buckTT.cancel()
         
         #New Trickle Timer Instance
 
         try:
-
-            rxtt = trickleTimer(recvSocket.sendToSock,{'message':Version, 'host':MCASTGRP, 'port': MCASTPORT},IMIN, IMAX)
-            rxtt.start()
+            buckTT = trickleTimer(recvSocket.sendToSock, {'message':Version, 'host':MCASTGRP, 'port': MCASTPORT})
+            buckTT.start()
 
         except socket.error as e:
-            logger.exception("Error: triggering newVersion trickleTimer")
+            logger.error("Error while Trickle Timer set")
     
-    Bucket(myVersion)
 
 
 if __name__ == "__main__":
 
     # Create Socket and Bind it to Multicast Port
-    recvSocket = twinSocket()
+    
     recvSocket.bindTheSock()
 
     # Path on the Pi where the file needs to be stored
     # In practice, the decoded file will be stored into a folder
     # where INOTIFY-TOOLS is setup in order to trigger the uploading 
     # of the file on Sensor
-    global PIPATH
-    PIPATH = '/tmp/'
+
+    gv.PATH = '/tmp/'
+    chdir(gv.PATH)
 
     # file Name
-    global PIFILENAME
-    PIFILENAME = 'incomingData.tar'
+    gv.FILENAME = 'incomingData.tar'
 
     # Initial Version
+    global myVersion
     myVersion = 0
 
-    trickMSG = pack('!H', myVersion)
 
-    # create a trickle Timer instance
-    buckTT = trickleTimer(recvSocket.sendToSock,{'message':trickMSG, 'host':MCASTGRP, 'port': MCASTPORT}, IMIN, IMAX)
+    global buckTT
     
+    buckTT = trickleTimer(recvSocket.sendToSock,{'message':pack('!H', myVersion), 'host':MCASTGRP, 'port': MCASTPORT})
     buckTT.start()
 
-    Bucket(myVersion)
+
+    while True:
+        Bucket(myVersion) 

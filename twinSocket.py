@@ -25,6 +25,11 @@ from struct import pack, unpack
 
 from sys import exit
 
+import logging
+
+logger = logging.getLogger("Socket")
+logger.setLevel(logging.ERROR)
+
 # Link-Local group
 MCASTGRP = 'ff02::1'
 
@@ -36,7 +41,7 @@ MCASTPORT = 30001
 
 # TTL for Multicasting (default value = 1)
 # Increase value to increase reach
-MTTL = 2
+MTTL = 1
 
 class twinSocket(object):
     """Class for Socket Creation and Binding and also Sending and Receiving data.."""
@@ -49,10 +54,10 @@ class twinSocket(object):
             sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
             # this is Optional --> multiuse of the Socket
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            print("SOCKET CREATED....")
+            logger.info("SOCKET CREATED....")
 
         except socket.error as e:
-            print("SOCKET CREATION FAILED..")
+            logger.info("SOCKET CREATION FAILED..")
             raise e
             exit()
 
@@ -77,10 +82,10 @@ class twinSocket(object):
             self.sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, pack('@i', 0))
                 # to increase reach of the LL multicasting --> increase MTTL value
             self.sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, pack('@I', MTTL))
-            print("SOCKET BINDED....")
+            logger.info("SOCKET BINDED....")
 
         except socket.error as e:
-            print("SOCKET BINDING FAILED..")
+            logger.error("SOCKET BINDING FAILED..")
             raise e
             exit()
 
@@ -90,7 +95,7 @@ class twinSocket(object):
         try:
             self.sock.sendto(message, (host, port))
         except socket.error as e:
-            print("SENDING FAILED.. ")
+            logger.error("SENDING FAILED.. ")
             raise e
             exit()
 
@@ -106,7 +111,7 @@ class twinSocket(object):
 
     def closeSock(self):
         
-        print("CLOSING SOCKET..")
+        logger.error("CLOSING SOCKET..")
         self.sock.close()
 
     def getLocalName(self, ipWhole):
