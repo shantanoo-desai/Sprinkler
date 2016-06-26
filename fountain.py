@@ -6,7 +6,7 @@ from lt.sampler import DEFAULT_DELTA
 
 from struct import pack, unpack
 
-from math import log, sqrt, ceil
+from math import log, sqrt, floor
 
 from twinSocket import *
 
@@ -16,21 +16,22 @@ from os import chdir, path
 
 import argparse, sys, datetime, logging, threading, time
 
-# Trickle Parameters Optimized for Setup
-IMAX = 10
-IMIN = 8
+import global_variables as gv
 
 # Logging Configuration
 logger = logging.getLogger("Fountain")
 logger.setLevel(logging.DEBUG)
 
-handler = logging.FileHandler('fountain.log')
+handler = logging.FileHandler('./logFiles/fountain.log')
 handler.setLevel(logging.DEBUG)
 
 # format for logging
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+
+fSocket = twinSocket()
 
 
 def addFooter(encodedBlock, VERSION):
@@ -47,14 +48,14 @@ def fountainParameters(FILENAME, BLOCKSIZE):
 
     with open(FILENAME, 'rb') as f:
 
-        sizeOfFile, blockCount = encode._split_file(f, BLOCKSIZE)
+        sizeOfFile, blockCount = encode._split_file(f, gv.BLOCKSIZE)
 
         calcK = len(blockCount)
 
         logger.debug("No. of Blocks: %d" %calcK)
         logger.debug("FileSize in bytes: %d" %sizeOfFile)
 
-        calcGamma =  ceil(sqrt(calcK) * (log(calcK/DEFAULT_DELTA)**2)/calcK)
+        calcGamma =  floor(sqrt(calcK) * (log(calcK/DEFAULT_DELTA)**2)/calcK)
         logger.debug("Gamma: %d" %calcGamma)
 
     return calcK, calcGamma
@@ -67,35 +68,39 @@ def checkConsistency(theirVersion, VERSION, founTT):
         logger.debug("their Version:%d, our Version:%d"%(theirVersion,VERSION))
         logger.info("Consistency Detected")
         founTT.hear_consistent()
-    else:
+
+    elif theirVersion > VERSION:
         logger.debug("their Version:%d, our Version:%d"%(theirVersion,VERSION))
+        logger.info("We are Behind!")
         logger.info("Inconsistency Detected")
         founTT.hear_inconsistent()
 
-        # If theirs and our VERSION values don't match Start the Fountain Again
-        # THREAD here... NOT SURE IF GOOD IDEA HERE
-        fThread = threading.Thread(target = fountain, args=(FILENAME, BLOCKSIZE, VERSION), daemon=True)
-        fThread.start()
-        fThread.join()
-    logger.info("Exiting the Check")
+    else:
+        logger.info("They are behind.. Starting Fountain")
+        if founTT.can_transmit():
+            global threadFount
+            threadFount = threading.Thread(target=fountain, args=(gv.FILENAME, gv.BLOCKSIZE, VERSION), daemon=True)
+            threadFount.start()
+            threadFount.join()
+        founTT.hear_inconsistent()
+    
+    print("Exiting the Check")
 
 def fountain(FILENAME, BLOCKSIZE, VERSION):
     """Main Fountain code: will send encoded Packets upto a certain
        limit over a multicast channel
     """
-
-    ########### This is experimental --> Kind of a back off and listen mechanism
     print("Sending Notification!..")
 
     notifier = 255
     fNotifier = pack('!H', notifier)
     fSocket.sendToSock(fNotifier, MCASTGRP)
 
-    time.sleep(10)
 
     # Bring in the Fountain Paramaters
-    K, Gamma = fountainParameters(FILENAME, BLOCKSIZE)
+    K, Gamma = fountainParameters(gv.FILENAME, gv.BLOCKSIZE)
 
+    chdir(gv.PATH)
     with open(FILENAME, 'rb') as f:
         """
             Methodology for Fountain:
@@ -115,7 +120,7 @@ def fountain(FILENAME, BLOCKSIZE, VERSION):
             timeStamp1 = datetime.datetime.now().replace(microsecond=0)
             logger.info("Starting Fountain")
 
-            for eachBlock in encode.encoder(f, BLOCKSIZE):
+            for eachBlock in encode.encoder(f, gv.BLOCKSIZE):
                 # Step : 2
                 droplet = addFooter(eachBlock, VERSION)
 
@@ -137,16 +142,11 @@ def fountain(FILENAME, BLOCKSIZE, VERSION):
                     raise sockE
                     fSocket.closeSock()
 
+            break
             # Out of the encoder block
-            # Step : 5
-            # start the Trickle Timer by sending our Current Code Version
+            
 
-            founTT = trickleTimer(fSocket.sendToSock, {'message': pack('!H', VERSION), 'host': MCASTGRP, 'port': MCASTPORT}, IMAX, IMIN)
-
-            founTT.start()
-            Cognition(fSocket, VERSION, founTT) # IS THIS HACKY OR GOOD??
-
-def Cognition(fSocket, VERSION, founTT):
+def Cognition(VERSION, founTT):
     logger.info("Entering Cognition State")
 
     while True:
@@ -170,9 +170,7 @@ def Cognition(fSocket, VERSION, founTT):
             
             # Step : 7 USING a Thread called Checker. Assuming once Thread is
             # done checking it returns back here.. Back to Cognition state
-            checker = threading.Thread(target=checkConsistency, args=(theirVersion, VERSION, founTT), daemon=True)
-            checker.start()
-            checker.join()
+            checkConsistency(theirVersion, VERSION, founTT)
      
 
 if __name__ == '__main__':
@@ -186,21 +184,29 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    if not path.exists(args.path):
+    gv.PATH = args.path
+    gv.FILENAME = args.filename
+    VERSION = args.version
+    gv.BLOCKSIZE = args.blocksize
+
+    if not path.exists(gv.PATH):
         print("Path doesn't exist", file = sys.stderr)
         sys.exit(1)
-    chdir(args.path)
+    chdir(gv.PATH)
 
-    if not path.isfile(args.filename):
+    if not path.isfile(gv.FILENAME):
         print("File doesn't exist", file = sys.stderr)
         sys.exit(1)
-
-    FILENAME = args.filename
-    VERSION = args.version
-    BLOCKSIZE = args.blocksize
+    
 
     # Open A MCAST socket and Bind it
-    fSocket = twinSocket()
+    
     fSocket.bindTheSock()
     
-    fountain(FILENAME, BLOCKSIZE, VERSION)
+    fountain(gv.FILENAME, gv.BLOCKSIZE, VERSION)
+    global founTT
+    founTT = trickleTimer(fSocket.sendToSock, {'message': pack('!H', VERSION), 'host': MCASTGRP, 'port': MCASTPORT})
+
+    founTT.start()
+
+    Cognition(VERSION, founTT)
