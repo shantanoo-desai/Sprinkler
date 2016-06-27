@@ -18,6 +18,8 @@
 * This file is part of TWIN project
 """
 #!/usr/bin/python3
+
+>>>>>>> FounCode-master
 import socket
 
 from struct import pack, unpack
@@ -53,10 +55,10 @@ class twinSocket(object):
             sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
             # this is Optional --> multiuse of the Socket
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            logger.error("SOCKET CREATED....")
+            logger.info("SOCKET CREATED....")
 
         except socket.error as e:
-            logger.error("SOCKET CREATION FAILED..")
+            logger.info("SOCKET CREATION FAILED..")
             raise e
             exit()
 
@@ -81,7 +83,7 @@ class twinSocket(object):
             self.sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, pack('@i', 0))
                 # to increase reach of the LL multicasting --> increase MTTL value
             self.sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, pack('@I', MTTL))
-            logger.error("SOCKET BINDED....")
+            logger.info("SOCKET BINDED....")
 
         except socket.error as e:
             logger.error("SOCKET BINDING FAILED..")
