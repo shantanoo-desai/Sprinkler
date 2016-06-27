@@ -177,4 +177,4 @@ if __name__ == "__main__":
 
 
     while True:
-        Bucket(myVersion) 
+        Bucket(myVersion)

@@ -79,7 +79,8 @@ def checkConsistency(theirVersion, VERSION, founTT):
         logger.info("They are behind.. Starting Fountain")
         if founTT.can_transmit():
             global threadFount
-            threadFount = threading.Thread(target=fountain, args=(gv.FILENAME, gv.BLOCKSIZE, VERSION), daemon=True)
+            threadFount = threading.Thread(target=fountain, args=(gv.FILENAME, gv.BLOCKSIZE, VERSION))
+            threadFount.daemon = True
             threadFount.start()
             threadFount.join()
         founTT.hear_inconsistent()
