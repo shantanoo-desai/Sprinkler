@@ -111,12 +111,6 @@ def fountain(FILENAME, BLOCKSIZE, VERSION):
     """Main Fountain code: will send encoded Packets upto a certain
        limit over a multicast channel
     """
-    print("Sending Notification!..")
-
-    notifier = 255
-    fNotifier = pack('!H', notifier)
-    fSocket.sendToSock(fNotifier, MCASTGRP)
-
 
     # Bring in the Fountain Paramaters
     K, Gamma = fountainParameters(gv.FILENAME, gv.BLOCKSIZE)
