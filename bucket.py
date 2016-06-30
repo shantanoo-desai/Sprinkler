@@ -83,19 +83,12 @@ def Bucket(version):
             # if Trickle Messages 
             if len(droplets) == 2:
 
-                decider = unpack('!H', droplets)[0]
-                if decider == 255:
-                    # if notifier message do nothing but listen
-                    logger.info("Received a Notifier Message")
-                    logger.info("heard from %s"%FountainAddress)
+                theirVersion = unpack('!H', droplets)[0]    
 
-
-                elif decider != 255:
-                    # if not Notifier Message then it must be their Version
-                    theirVersion = decider
-                    logger.info("Version check for %s"%FountainAddress)
-                    global buckTT
-                    checkConsistency(theirVersion, version,buckTT)
+                # their Version
+                logger.info("Version check for %s"%FountainAddress)
+                global buckTT
+                checkConsistency(theirVersion, version, buckTT)
 
 
             # If Droplets..
