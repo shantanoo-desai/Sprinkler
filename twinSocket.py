@@ -19,6 +19,7 @@
 """
 #!/usr/bin/python3
 
+>>>>>>> FounCode-master
 import socket
 
 from struct import pack, unpack
@@ -41,7 +42,7 @@ MCASTPORT = 30001
 
 # TTL for Multicasting (default value = 1)
 # Increase value to increase reach
-MTTL = 1
+MTTL = 2
 
 class twinSocket(object):
     """Class for Socket Creation and Binding and also Sending and Receiving data.."""

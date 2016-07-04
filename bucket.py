@@ -17,7 +17,6 @@
 *
 * This file is part of TWIN project
 """
-
 #!/usr/bin/python3
 
 from lt import decode
@@ -89,7 +88,7 @@ def Bucket(version):
                     # if notifier message do nothing but listen
                     logger.info("Received a Notifier Message")
                     logger.info("heard from %s"%FountainAddress)
-                    
+
 
                 elif decider != 255:
                     # if not Notifier Message then it must be their Version
@@ -97,6 +96,7 @@ def Bucket(version):
                     logger.info("Version check for %s"%FountainAddress)
                     global buckTT
                     checkConsistency(theirVersion, version,buckTT)
+
 
             # If Droplets..
             elif len(droplets) > 1000:
@@ -110,6 +110,7 @@ def Bucket(version):
 
                 # if myVersion and founVersion are same try to do nothing since we already have the file
                 if version == founVERSION:
+
                     try:
                         pass
                     except:
@@ -128,6 +129,7 @@ def Bucket(version):
                         # save the file at the location with appropriate filename
                         logger.info("File Decoded!..")
                         logger.debug("Droplets Consumed: %d" %dropletCounter)
+
                         logger.info("Source: %s"%FountainAddress)
                         gv.fountCache.append(FountainAddress)
 
@@ -150,6 +152,7 @@ def Bucket(version):
         # create an updated trickMSG for the Fountain
         # ensuring the file was decoded by sending the 
         # received version number
+
         global myVersion
         myVersion = founVERSION
         version = myVersion
@@ -185,11 +188,10 @@ if __name__ == "__main__":
     # file Name
     gv.FILENAME = 'incomingData.tar'
 
+
     # Initial Version
     global myVersion
     myVersion = 0
-
-
     global buckTT
     
     buckTT = trickleTimer(recvSocket.sendToSock,{'message':pack('!H', myVersion), 'host':MCASTGRP, 'port': MCASTPORT})

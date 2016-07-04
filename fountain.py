@@ -142,6 +142,7 @@ def fountain(FILENAME, BLOCKSIZE, VERSION):
             logger.info("Starting Fountain")
 
             for eachBlock in encode.encoder(f, gv.BLOCKSIZE):
+
                 # Step : 2
                 droplet = addFooter(eachBlock, VERSION)
 
@@ -162,7 +163,6 @@ def fountain(FILENAME, BLOCKSIZE, VERSION):
                 except socket.error as sockE:
                     raise sockE
                     fSocket.closeSock()
-
             break
             # Out of the encoder block
             
