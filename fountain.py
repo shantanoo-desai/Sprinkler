@@ -224,7 +224,6 @@ if __name__ == '__main__':
     
     fSocket.bindTheSock()
     
-
     fountain(gv.FILENAME, gv.BLOCKSIZE, VERSION)
     global founTT
     founTT = trickleTimer(fSocket.sendToSock, {'message': pack('!H', VERSION), 'host': MCASTGRP, 'port': MCASTPORT})
