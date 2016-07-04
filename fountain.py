@@ -205,12 +205,12 @@ if __name__ == '__main__':
     gv.BLOCKSIZE = args.blocksize
 
     if not path.exists(gv.PATH):
-        print("Path doesn't exist", file = sys.stderr)
+        print("Path doesn't exist")
         sys.exit(1)
     chdir(gv.PATH)
 
     if not path.isfile(gv.FILENAME):
-        print("File doesn't exist", file = sys.stderr)
+        print("File doesn't exist")
         sys.exit(1)
     
 
