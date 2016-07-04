@@ -156,11 +156,11 @@ if __name__ == "__main__":
     chdir(gv.PATH)
 
     # file Name
-    gv.FILENAME = 'incomingData.tar'
+    gv.FILENAME = 'pack100.tar'
 
     # Initial Version
     global myVersion
-    myVersion = 0
+    myVersion = 1
 
 
     global buckTT
