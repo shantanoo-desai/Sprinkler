@@ -1,3 +1,22 @@
+"""
+ TWIN Node - A Flexible Wireless Sensor Network Testbed
+*
+* Copyright (C) 2016, Communication Networks, University of Bremen, Germany
+*
+* This program is free software; you can redistribute it and/or modify it
+* under the terms of the GNU General Public License as published by the
+* Free Software Foundation; version 3 of the License.
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+* or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with this program; if not, see <http://www.gnu.org/licenses/>
+*
+* This file is part of TWIN project
+"""
 #!/usr/bin/python3
 
 from lt import decode
@@ -71,6 +90,7 @@ def Bucket(version):
                 global buckTT
                 checkConsistency(theirVersion, version, buckTT)
 
+
             # If Droplets..
             elif len(droplets) > 1000:
                 
@@ -83,6 +103,7 @@ def Bucket(version):
 
                 # if myVersion and founVersion are same try to do nothing since we already have the file
                 if version == founVERSION:
+
                     try:
                         pass
                     except:
@@ -101,6 +122,7 @@ def Bucket(version):
                         # save the file at the location with appropriate filename
                         logger.info("File Decoded!..")
                         logger.debug("Droplets Consumed: %d" %dropletCounter)
+
                         logger.info("Source: %s"%FountainAddress)
                         gv.fountCache.append(FountainAddress)
 
@@ -123,6 +145,7 @@ def Bucket(version):
         # create an updated trickMSG for the Fountain
         # ensuring the file was decoded by sending the 
         # received version number
+
         global myVersion
         myVersion = founVERSION
         version = myVersion
@@ -158,10 +181,11 @@ if __name__ == "__main__":
     # file Name
     gv.FILENAME = 'pack100.tar'
 
+
     # Initial Version
     global myVersion
+    
     myVersion = 1
-
 
     global buckTT
     

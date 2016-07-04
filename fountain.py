@@ -1,3 +1,23 @@
+"""
+ TWIN Node - A Flexible Wireless Sensor Network Testbed
+*
+* Copyright (C) 2016, Communication Networks, University of Bremen, Germany
+*
+* This program is free software; you can redistribute it and/or modify it
+* under the terms of the GNU General Public License as published by the
+* Free Software Foundation; version 3 of the License.
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+* or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with this program; if not, see <http://www.gnu.org/licenses/>
+*
+* This file is part of TWIN project
+"""
+
 #!/usr/bin/python3
 
 from lt import encode, decode
@@ -116,6 +136,7 @@ def fountain(FILENAME, BLOCKSIZE, VERSION):
             logger.info("Starting Fountain")
 
             for eachBlock in encode.encoder(f, gv.BLOCKSIZE):
+
                 # Step : 2
                 droplet = addFooter(eachBlock, VERSION)
 
@@ -136,7 +157,6 @@ def fountain(FILENAME, BLOCKSIZE, VERSION):
                 except socket.error as sockE:
                     raise sockE
                     fSocket.closeSock()
-
             break
             # Out of the encoder block
             
@@ -185,12 +205,12 @@ if __name__ == '__main__':
     gv.BLOCKSIZE = args.blocksize
 
     if not path.exists(gv.PATH):
-        print("Path doesn't exist", file = sys.stderr)
+        print("Path doesn't exist")
         sys.exit(1)
     chdir(gv.PATH)
 
     if not path.isfile(gv.FILENAME):
-        print("File doesn't exist", file = sys.stderr)
+        print("File doesn't exist")
         sys.exit(1)
     
 
