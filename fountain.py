@@ -224,9 +224,8 @@ if __name__ == '__main__':
     
     fSocket.bindTheSock()
     
-<<<<<<< HEAD
+
     fountain(FILENAME, BLOCKSIZE, VERSION)
-=======
     fountain(gv.FILENAME, gv.BLOCKSIZE, VERSION)
     global founTT
     founTT = trickleTimer(fSocket.sendToSock, {'message': pack('!H', VERSION), 'host': MCASTGRP, 'port': MCASTPORT})
@@ -234,4 +233,3 @@ if __name__ == '__main__':
     founTT.start()
 
     Cognition(VERSION, founTT)
->>>>>>> 23fc69c114b83499398e7886972876cba57b884e
