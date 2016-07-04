@@ -211,12 +211,12 @@ if __name__ == '__main__':
     gv.BLOCKSIZE = args.blocksize
 
     if not path.exists(gv.PATH):
-        print("Path doesn't exist", file = sys.stderr)
+        print("Path doesn't exist")
         sys.exit(1)
     chdir(gv.PATH)
 
     if not path.isfile(gv.FILENAME):
-        print("File doesn't exist", file = sys.stderr)
+        print("File doesn't exist")
         sys.exit(1)
     
 
@@ -225,7 +225,6 @@ if __name__ == '__main__':
     fSocket.bindTheSock()
     
 
-    fountain(FILENAME, BLOCKSIZE, VERSION)
     fountain(gv.FILENAME, gv.BLOCKSIZE, VERSION)
     global founTT
     founTT = trickleTimer(fSocket.sendToSock, {'message': pack('!H', VERSION), 'host': MCASTGRP, 'port': MCASTPORT})
