@@ -91,6 +91,14 @@ def CheckConsistency(incomingVersion):
     if gv.VERSION == incomingVersion:
         ## If values are same
         ## - Consistent
+        if gv.tt.c > gv.tt.k or gv.tt.function.__name__=='fountain':
+
+            ## If we are in supressed transmission state
+            ## c >= k an if the timer resets
+            ## chances are we might spray an unecessary fountain once
+            ## if that is the case: rather send a TrickleMessage
+            setattr(gv.tt, 'function', gv.mcastSock.send)
+            setattr(gv.tt, 'kwargs', {'message':pack('!H', gv.VERSION),'host':gv.MCAST_GRP,'port':gv.MCAST_PORT})
         logger.info("Consistent")
         gv.tt.hear_consistent()
     else:
