@@ -74,6 +74,7 @@ def bucket():
             ## Receive Data
             data, recvAddr = gv.mcastSock.receive(65535)
 
+
             if not data:
                 logger.error("No data..")
                 sys.exit(1)
@@ -133,9 +134,7 @@ def bucket():
                         ## Global Filename variable
                         gv.FILENAME = open_next_file(decoder)
                         logger.debug("Total Droplets Received:%d"%receivedDroplets)
-                        receivedDroplets = 0
                         break
-
 
     except socket.error as sockErr:
         logger.error("Error While Listening on Socket")
