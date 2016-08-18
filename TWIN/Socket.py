@@ -17,6 +17,11 @@ logger.setLevel(logging.ERROR)
 handler = logging.FileHandler(path.expanduser("~")+"/logFiles/TWIN.log")
 handler.setLevel(logging.DEBUG)
 
+# format for logging
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 class Socket:
     """
         Class: Socket
