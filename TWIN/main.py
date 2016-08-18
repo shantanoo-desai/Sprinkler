@@ -15,6 +15,11 @@ logger.setLevel(logging.ERROR)
 handler = logging.FileHandler(path.expanduser("~")+"/logFiles/TWIN.log")
 handler.setLevel(logging.ERROR)
 
+# format for logging
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 
 def main(args):
     parser = argparse.ArgumentParser(description="Data Dissemination in TWIN Back-Channel")
