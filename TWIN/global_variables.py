@@ -35,3 +35,7 @@ FILENAME = "trialPack.tar"
 ## Path Variable for the Filename
 
 PATH = "/home/testbed/hexfiles"
+
+## Dictionary Cache for a pseudo-route table
+
+rCache = {'fountain': '', 'neighbors':[]}
