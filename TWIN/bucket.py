@@ -5,6 +5,7 @@ from io import BytesIO
 from struct import pack, unpack
 from TWIN.fountain import CheckConsistency
 from os import chdir, path
+from TWIN.route import addRoute
 import sys, socket
 import logging
 
@@ -90,6 +91,8 @@ def bucket():
                 ## - this is trickleMessage
                 theirVersion = unpack('!H', data)[0]
                 logger.info("Version Check for %s"%recvAddr)
+                ## store the IP address of Trickle Neighbor
+                addRoute(foun=None, neigh=recvAddr)
 
                 CheckConsistency(theirVersion)
 
@@ -139,6 +142,8 @@ def bucket():
                         ## Global Filename variable
                         gv.FILENAME = open_next_file(decoder)
                         logger.debug("Total Droplets Received:%d"%receivedDroplets)
+                        ## Store the Fountain address in routeTable.json
+                        addRoute(foun=recvAddr, neigh=None)
                         break
 
     except socket.error as sockErr:
