@@ -75,6 +75,9 @@ def bucket():
     ## Counter
     receivedDroplets = 0
 
+    ## Consumed Block Counter
+    consumedBlocks = 0
+
     try:
         while True:
             ## Receive Data
@@ -134,6 +137,10 @@ def bucket():
 
                         logger.info("writing file")
 
+                        ## This is the Block that decodes it all
+                        ## hence increase the consumption counter
+                        consumedBlocks += 1
+
                         ## Change to Target Folder
                         chdir(gv.PATH)
                         
@@ -141,10 +148,19 @@ def bucket():
                         ## Automatically and assign value to the 
                         ## Global Filename variable
                         gv.FILENAME = open_next_file(decoder)
+
+                        logger.debug("Total Droplets Consumed:%d"%consumedBlocks)
                         logger.debug("Total Droplets Received:%d"%receivedDroplets)
+                        
                         ## Store the Fountain address in routeTable.json
                         addRoute(foun=recvAddr, neigh=None)
                         break
+
+                    ## Increase the consumption counter
+                    ## if this increases it means that
+                    ## the Droplet in the Generator
+                    ## wasn't the one to decode the file
+                    consumedBlocks += 1
 
     except socket.error as sockErr:
         logger.error("Error While Listening on Socket")
@@ -157,7 +173,7 @@ def bucket():
         ## Pack the new version and send out
         ## a TrickleMessage
         gv.VERSION = founVersion
-        logger.debug("Version Updated:%d"%gv.VERSION)
+        logger.debug("Version Updated: %d"%gv.VERSION)
 
         ## Pack the newly update Version and trigger an
         ## Inconsistency for faster response to the sending source
