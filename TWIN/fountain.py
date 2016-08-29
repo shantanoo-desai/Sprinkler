@@ -2,7 +2,7 @@
 from lt import encode
 from lt.sampler import DEFAULT_DELTA
 from struct import pack
-from math import log10, sqrt, floor, ceil
+from math import log, sqrt, floor, ceil
 import TWIN.global_variables as gv
 import datetime, socket
 from os import chdir, path
@@ -69,7 +69,7 @@ def FounParameters(fname=gv.FILENAME, bsize=gv.BLOCKSIZE):
     logger.debug("No. of Blocks:%d"%calculated_K)
 
     ## Determine Value of Gamma
-    calculated_Gamma = (sqrt(calculated_K) * (log10(calculated_K/DEFAULT_DELTA)**2)/calculated_K)
+    calculated_Gamma = (sqrt(calculated_K) * (log(calculated_K/DEFAULT_DELTA))**2/calculated_K)
     logger.debug("Value of Gamma: %f"%calculated_Gamma)
 
     return calculated_K, calculated_Gamma
