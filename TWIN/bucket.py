@@ -39,7 +39,7 @@ def open_next_file(aDecoder, template='incomingData{}.tar'):
             ## if file does not exist,
             ## enter data into the new file
 
-            with open(template.format(serial), 'wb') as f:
+            with open(template.format(serial), 'wb+') as f:
                 f.write(aDecoder.bytes_dump())
             break
 
@@ -118,12 +118,18 @@ def bucket():
                     ## If my Version and Fountain's version
                     ## is Same. Do nothing.
                     pass
-
+                elif founVersion < gv.VERSION:
+                    ## If Someone else is spraying an older
+                    ## Found become inconsistent and make
+                    ## Things Right..
+                    ## This is particularly useful for Server
+                    gv.tt.hear_inconsistent()
                 else:
                     ## Else Definitely this is a new OTA data
                     ## feed the block to the decoder
 
-                    lt_block = next(decode.read_blocks(BytesIO(droplet)))
+                    ## use this API (a wrapper around next())
+                    lt_block = decode.block_from_bytes(droplet)
 
 
                     if decoder.consume_block(lt_block):
