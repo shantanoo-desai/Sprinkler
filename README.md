@@ -13,11 +13,32 @@ It uses:
 
 ## Usage
 
+__Case__:
     python3 Sprinkler.py --version 1 --filename /path/to/file --group ff32::2
     --port 30002
 
 will distribute the file `/path/to/file` over the wireless ad-hoc network Nodes
 which are running the same code but will lower `version` number (for instance __0__)
+
+General:
+
+    usage: Sprinkler.py [-h] [-V VERSION] [-b BLOCK] [-f FILENAME] [-g GROUP]
+                    [-p PORT]
+
+    Sprinkler Wireless Data Dissemination Protocol
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    -V VERSION, --version VERSION
+                        Version Number for Updated Data
+    -b BLOCK, --block BLOCK
+                        Encoding Block Length, keep it less than 1500B
+    -f FILENAME, --filename FILENAME
+                        Main File for Fountain. provide complete path
+    -g GROUP, --group GROUP
+                        IPv6 Multicast Group. Default is ff02::1
+    -p PORT, --port PORT  port number. Default is 30001
+
 
 ### Setup
 
