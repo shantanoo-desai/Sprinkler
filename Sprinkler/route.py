@@ -65,8 +65,8 @@ def addRoute(foun=None, neigh=None):
         else:
             rCache['neighbors'].append(neigh)
 
-    # Save in /home/ folder
-    chdir(path.expanduser("~"))
+    # Save in current folder
+    chdir(path.expanduser("."))
 
     with open("routeTable.json", 'w+') as rtable:
         json.dump(rCache, rtable)
