@@ -42,9 +42,10 @@ mkdir $DESTDIR/log
 # make the argument parser point to this dummy file by default
 
 touch $DESTDIR/log/dummy.bin
+touch $DESTDIR/routeTable.json
 
 # Change ownership (not root!)
-chown -R $CURRENT_USER:$CURRENT_USER $DESTDIR/log
+chown -R $CURRENT_USER:$CURRENT_USER $DESTDIR/log $DESTDIR/routeTable.json
 
 echo
 echo "SETUP complete."
