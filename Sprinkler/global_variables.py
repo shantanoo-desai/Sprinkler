@@ -56,7 +56,7 @@ PATH = path.expanduser(".") + "/transmissions"
 
 # Filename for Encoding
 
-FILENAME = PATH + "/dummy.bin"
+FILENAME = "dummy.bin"
 
 # Dictionary Cache for a pseudo-route table
 
