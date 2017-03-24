@@ -66,6 +66,8 @@ def addRoute(foun=None, neigh=None):
             rCache['neighbors'].append(neigh)
 
     # Save in current folder
+    # Usually the path mentioned by gv.PATH
+    # As in main.py we perform a chdir
     chdir(path.expanduser("."))
 
     with open("routeTable.json", 'w+') as rtable:
