@@ -52,7 +52,7 @@ MCAST_TTL = 2
 BLOCKSIZE = 1450
 
 # Path for Incoming/Outgoing Folder
-PATH = path.expanduser(".") + "/transmissions"
+PATH = path.expanduser(".") + "/transmissions/"
 
 # Filename for Encoding
 
