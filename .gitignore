@@ -64,3 +64,5 @@ target/
 #Log files
 log/
 *.log
+*.json
+transmissions/

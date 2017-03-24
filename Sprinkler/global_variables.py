@@ -23,6 +23,7 @@ __author__ = "Shantanoo Desai"
 """
     Global Variables Used Through Out the Module
 """
+from os import path
 
 # Version for Trickle Algorithm
 VERSION = 0
@@ -50,9 +51,12 @@ MCAST_TTL = 2
 
 BLOCKSIZE = 1450
 
+# Path for Incoming/Outgoing Folder
+PATH = path.expanduser(".") + "/transmissions"
+
 # Filename for Encoding
 
-FILENAME = "./log/dummy.bin"
+FILENAME = "dummy.bin"
 
 # Dictionary Cache for a pseudo-route table
 
