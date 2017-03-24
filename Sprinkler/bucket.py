@@ -28,7 +28,7 @@ import Sprinkler.global_variables as gv
 from lt import decode
 from struct import pack, unpack
 from Sprinkler.fountain import CheckConsistency
-from os import chdir, path
+from os import path
 from Sprinkler.route import addRoute
 import sys
 import socket
@@ -172,7 +172,7 @@ def bucket():
                         consumedBlocks += 1
 
                         # Change to Target Folder
-                        chdir(gv.PATH)
+                        # we already are in gv.PATH through main.py
 
                         # Dump the Data into a new File template
                         # Automatically and assign value to the

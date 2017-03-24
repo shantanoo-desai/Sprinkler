@@ -31,7 +31,7 @@ from math import log, sqrt
 import Sprinkler.global_variables as gv
 import datetime
 import socket
-from os import chdir, path
+from os import path
 import logging
 
 # Central Logging Entity
@@ -83,8 +83,8 @@ def FounParameters(fname=gv.FILENAME, bsize=gv.BLOCKSIZE):
             the file Completely.
     """
 
-    # Change to Target Path
-    chdir(gv.PATH)
+    # We are already in gv.PATH
+    # this was triggered in main.py
 
     # Open the Target File
     with open(fname, 'rb') as f:
@@ -192,7 +192,7 @@ def fountain(fname=gv.FILENAME, bsize=gv.BLOCKSIZE, ver=gv.VERSION):
     k, g = FounParameters(fname, bsize)
 
     # Step 2:
-    chdir(gv.PATH)
+    # we are already in gv.PATH
 
     with open(fname, 'rb') as f:
 
