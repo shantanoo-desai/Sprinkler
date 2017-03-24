@@ -43,10 +43,9 @@ mkdir $DESTDIR/transmissions
 # make the argument parser point to this dummy file by default
 
 touch $DESTDIR/transmissions/dummy.bin
-touch $DESTDIR/routeTable.json
 
 # Change ownership (not root!)
-chown -R $CURRENT_USER:$CURRENT_USER $DESTDIR/log $DESTDIR/routeTable.json $DESTDIR/transmissions
+chown -R $CURRENT_USER:$CURRENT_USER $DESTDIR/log $DESTDIR/transmissions
 
 echo
 echo "SETUP complete."
