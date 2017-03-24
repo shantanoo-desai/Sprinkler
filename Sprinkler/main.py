@@ -27,7 +27,7 @@ from Sprinkler.Socket import Socket
 from Sprinkler.trickle import trickleTimer
 from struct import pack
 from Sprinkler.bucket import bucket
-from os import path
+from os import path, chdir
 import logging
 
 # Central Logging Entity
@@ -78,19 +78,20 @@ def main(args):
     gv.FILENAME = args.filename
 
     if not path.exists(gv.PATH):
-        print("Specified does not exist. use --pt to add path.")
+        print("Specified does not exist. use --path or -pt to add path.")
         sys.exit(1)
 
     if gv.FILENAME is None or gv.FILENAME == "":
-        print("No File Mentioned. use --filename to add a file")
+        print("No File Mentioned. use --filename or -f to add a file")
         sys.exit(1)
 
     gv.MCAST_GRP = args.group
 
     gv.MCAST_PORT = args.port
 
+    chdir(gv.PATH)
     if not path.exists(gv.FILENAME):
-        print("File or path Does not Exist")
+        print("File Does not Exist..")
         sys.exit(1)
 
     logger.debug("Starting with Version %d" % gv.VERSION)
