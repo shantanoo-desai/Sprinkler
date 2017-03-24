@@ -16,35 +16,53 @@ It uses:
 __Case__:
 
 
-    python3 Sprinkler.py --version 1 --filename /path/to/file --group ff32::2
+    python3 Sprinkler.py
+    --version 1 --path /path/to/dir/
+    --filename file_to_send --group ff32::2
     --port 30002
 
-will distribute the file `/path/to/file` over the wireless ad-hoc network Nodes
-which are running the same code but will lower `version` number (for instance __0__)
+will distribute the file `/path/to/dir/file_to_send` over the wireless ad-hoc network Nodes
+which are running the same code but will lower `version` number (for instance __0__).
+ The `/path/to/dir` will also store all new incoming files.
 
 General:
+```
+usage: Sprinkler.py [-h] [-V VERSION] [-b BLOCK] [-pt PATH] [-f FILENAME]
+                [-g GROUP] [-p PORT]
 
-    usage: Sprinkler.py [-h] [-V VERSION] [-b BLOCK] [-f FILENAME] [-g GROUP]
-                    [-p PORT]
+Sprinkler Wireless Data Dissemination Protocol
 
-    Sprinkler Wireless Data Dissemination Protocol
+optional arguments:
+-h, --help            show this help message and exit
+-V VERSION, --version VERSION
+                    Version Number for Updated Data
+-b BLOCK, --block BLOCK
+                    Encoding Block Length, keep it less than 1500B
+-pt PATH, --path PATH
+                    Path to the file for Dissemination / storing Incoming
+                    file over channel. Default is
+                    current_folder/transmissions
+-f FILENAME, --filename FILENAME
+                    Main File for Fountain. provide complete path
+-g GROUP, --group GROUP
+                    IPv6 Multicast Group. Default is ff02::1
+-p PORT, --port PORT  port number. Default is 30001
 
-    optional arguments:
-    -h, --help            show this help message and exit
-    -V VERSION, --version VERSION
-                        Version Number for Updated Data
-    -b BLOCK, --block BLOCK
-                        Encoding Block Length, keep it less than 1500B
-    -f FILENAME, --filename FILENAME
-                        Main File for Fountain. provide complete path
-    -g GROUP, --group GROUP
-                        IPv6 Multicast Group. Default is ff02::1
-    -p PORT, --port PORT  port number. Default is 30001
-
+```
 
 ### Setup
 
     sudo ./setup.sh
+
+This file will:
+
+* Check for `python3` and `pip3`
+
+* install the `lt-code` pip module
+
+* make necessary folders for the API and relevant dummy files for default operation
+
+* creates `routeTable.json` for storing information of nearby neighbors and source of information `fountain`
 
 ## Application
 
